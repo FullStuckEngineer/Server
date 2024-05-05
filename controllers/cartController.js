@@ -1,6 +1,8 @@
 const cartService = require('../services/cartService')
 
-const findOne = async (req, res, next) => {} 
+const findOne = async (req, res, next) => {
+   res.send("test")
+} 
 
 const update = async (req, res, next) => {} 
 

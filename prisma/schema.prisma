@@ -1,0 +1,177 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  email        String     @unique
+  name         String
+  role         String
+  password     String
+  phone_number String?
+  addresses    Address[]
+  cart         Cart?
+  checkouts    Checkout[]
+  created_at   DateTime   @default(now())
+  update_at    DateTime   @default(now()) @updatedAt
+}
+
+model City {
+  id         Int       @id @default(autoincrement())
+  name       String
+  addresses  Address[]
+  stores     Store[]
+  created_at DateTime  @default(now())
+  update_at  DateTime  @default(now()) @updatedAt
+}
+
+model Address {
+  id             Int        @id @default(autoincrement())
+  receiver_name  String
+  receiver_phone String
+  detail_address String
+  city_id        Int
+  city           City       @relation(fields: [city_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  province       String
+  postal_code    Int
+  user_id        Int
+  user           User       @relation(fields: [user_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  checkouts      Checkout[]
+  carts          Cart[]
+  created_at     DateTime   @default(now())
+  update_at      DateTime   @default(now()) @updatedAt
+}
+
+model Store {
+  id                  Int      @id @default(autoincrement())
+  name                String
+  city_id             Int
+  city                City     @relation(fields: [city_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  province            String
+  postal_code         String
+  bank_account_number String
+  created_at          DateTime @default(now())
+  update_at           DateTime @default(now()) @updatedAt
+}
+
+model Category {
+  id         Int       @id @default(autoincrement())
+  name       String
+  products   Product[]
+  created_at DateTime  @default(now())
+  update_at  DateTime  @default(now()) @updatedAt
+}
+
+model Product {
+  id                Int               @id @default(autoincrement())
+  name              String
+  photo             String?
+  description       Bytes
+  price             Int
+  weight            Int
+  category_id       Int
+  category          Category          @relation(fields: [category_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  stock             Int
+  sku               String
+  slug              String
+  keywords          String?
+  shopping_items    ShoppingItem[]
+  checkout_products CheckoutProduct[]
+  created_at        DateTime          @default(now())
+  update_at         DateTime          @default(now()) @updatedAt
+}
+
+model Courier {
+  id         Int        @id @default(autoincrement())
+  name       String
+  checkouts  Checkout[]
+  carts      Cart[]
+  created_at DateTime   @default(now())
+  update_at  DateTime   @default(now()) @updatedAt
+}
+
+model Cart {
+  id              Int            @id @default(autoincrement())
+  user_id         Int            @unique
+  user            User           @relation(fields: [user_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  shiping_cost    Int?
+  address_id      Int?
+  address         Address?       @relation(fields: [address_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  total_cost      Int?
+  courier_id      Int?
+  courier         Courier?       @relation(fields: [courier_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  shipping_method String?
+  total_weight    Int?
+  shopping_items  ShoppingItem[]
+  created_at      DateTime       @default(now())
+  update_at       DateTime       @default(now()) @updatedAt
+}
+
+model ShoppingItem {
+  id         Int      @id @default(autoincrement())
+  product_id Int
+  product    Product  @relation(fields: [product_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  quantity   Int?
+  cart_id    Int
+  cart       Cart     @relation(fields: [cart_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  price      Int?
+  created_at DateTime @default(now())
+  update_at  DateTime @default(now()) @updatedAt
+}
+
+model Checkout {
+  id                Int               @id @default(autoincrement())
+  user_id           Int
+  user              User              @relation(fields: [user_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  address_id        Int
+  address           Address           @relation(fields: [address_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  courier_id        Int
+  courier           Courier           @relation(fields: [courier_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  payment_method    String?
+  bank              String?
+  payment_receipt   String?
+  status            Status
+  invoice           String?
+  shipping_method   String
+  midtrans_data     Json?
+  total_weight      Int?
+  shipping_note     String?
+  total_cost        Int
+  shipping_cost     Int
+  checkout_products CheckoutProduct[]
+  created_at        DateTime          @default(now())
+  update_at         DateTime          @default(now()) @updatedAt
+}
+
+model CheckoutProduct {
+  id          Int      @id @default(autoincrement())
+  product_id  Int
+  product     Product  @relation(fields: [product_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  checkout_id Int
+  checkout    Checkout @relation(fields: [checkout_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  quantity    Int
+  price       Int
+  created_at  DateTime @default(now())
+  update_at   DateTime @default(now()) @updatedAt
+}
+
+enum Status {
+  waiting_payment
+  payment_verified
+  processing
+  shipping
+  delivered
+  completed
+  cancelled
+}

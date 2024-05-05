@@ -21,7 +21,10 @@ const productCmsRouter = require('./cms/productRoute')
 const storeCmsRouter = require('./cms/storeRoute')
 const userCmsRouter = require('./cms/userRoute')
 
+const {authentication , authorization } = require("../middlewares/auth")
+
 router.use("/api/auth", authRouter)
+router.use(authentication)
 router.use("/api/addresses", addressRouter)
 router.use("/api/carts", cartRouter)
 router.use("/api/categories", categoryRouter)
