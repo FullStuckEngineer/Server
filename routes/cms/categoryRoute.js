@@ -1,8 +1,6 @@
 const router = require('express').Router()
 const categoryController = require("../../controllers/cms/categoryController")
-const { authorization, authentication } = require("../../middlewares/auth")
-
-router.use(authentication);
+const { authorization } = require("../../middlewares/auth")
 
 router.get("/", authorization(["Admin"]), categoryController.findAll);
 router.get("/:id", authorization(["Admin"]), categoryController.findOne);
