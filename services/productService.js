@@ -1,7 +1,8 @@
 const prisma = require("../lib/prisma");
 
 const findAll = async (params) => {
-    const products = await prisma.product.findMany()
+    const products = await prisma.product.findMany();
+    if (!products) throw { name: "Products Not Found" };
     return products;
 } 
 
@@ -11,7 +12,8 @@ const findOne = async (params) => {
         where: {
             id: productId
         }
-    })
+    });
+    if (!product) throw { name: "Product Not Found" };
     return product;
 } 
 
@@ -34,6 +36,8 @@ const create = async (params) => {
             update_at: new Date()
         }
     })
+    if (!product) throw { name: "Failed to Create Product" };
+
     return product;
 } 
 
@@ -48,6 +52,8 @@ const uploadImage = async (params) => {
             updated_at: new Date()
         }
     });
+    if (!product) throw { name: "Failed to Upload Image" };
+
     return product;
 } 
 
@@ -75,6 +81,7 @@ const update = async (params) => {
         },
         data: dataToUpdate
     });
+    if (!product) throw { name: "Failed to Update Image" };
 
     return product;
 }
@@ -86,6 +93,8 @@ const destroy = async (params) => {
             id
         }
     })
+    if (!product) throw { name: "Failed to Delete Image" };
+
     return product;
 } 
 
