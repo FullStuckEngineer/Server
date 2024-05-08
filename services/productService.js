@@ -16,16 +16,15 @@ const findOne = async (params) => {
 } 
 
 const create = async (params) => {
-    const { name, photo, description, price, weight, category_id, stock, sku, slug, keywords } = params;
+    const { name, description, price, weight, category_id, stock, sku, slug, keywords } = params;
     const product = await prisma.product.create({
         data: {
             name,
-            photo,
             description,
-            price,
-            weight,
-            category_id,
-            stock,
+            price : parseInt(price),
+            weight : parseFloat(weight),
+            category_id : parseInt(category_id),
+            stock : parseInt(stock),
             sku,
             slug,
             keywords,
@@ -39,13 +38,13 @@ const create = async (params) => {
 } 
 
 const uploadImage = async (params) => {
-    const { id, photo } = params;
+    const { productId, filePath } = params;
     const product = await prisma.product.update({
         where: {
-            id
+            id: productId
         },
         data: {
-            photo,
+            photo: filePath,
             updated_at: new Date()
         }
     });
