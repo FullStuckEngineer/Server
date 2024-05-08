@@ -1,10 +1,13 @@
 const router = require('express').Router()
 const categoryController = require("../../controllers/cms/categoryController")
+const { authorization, authentication } = require("../../middlewares/auth")
 
-router.get("/", categoryController.findAll)
-router.get("/:id", categoryController.findOne)
-router.post("/", categoryController.create)
-router.put("/:id", categoryController.update)
-router.delete("/:id", categoryController.destroy)
+router.use(authentication);
+
+router.get("/", authorization(["Admin"]), categoryController.findAll);
+router.get("/:id", authorization(["Admin"]), categoryController.findOne);
+router.post("/", authorization(["Admin"]), categoryController.create);
+router.put("/:id", authorization(["Admin"]), categoryController.update);
+router.delete("/:id", authorization(["Admin"]), categoryController.destroy);
 
 module.exports = router
