@@ -5,7 +5,6 @@ const findAll = async (req, res, next) => {
         const address = await addressService.findAll(req.loggedUser)
         res.status(200).json(address)
     } catch (error) {
-        console.log("Error disini")
         next(error)
     }
 }
