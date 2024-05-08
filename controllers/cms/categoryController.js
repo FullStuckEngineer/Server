@@ -40,7 +40,7 @@ const update = async (req, res, next) => {
 
 const destroy = async (req, res, next) => {
     try{
-        const category = await categoryService.destroy(req.body)
+        const category = await categoryService.destroy(req.params)
         res.status(200).json({message: "Category Deleted", data: category})
     } catch(err){
         next(err)

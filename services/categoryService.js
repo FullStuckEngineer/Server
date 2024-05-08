@@ -42,10 +42,10 @@ const update = async (params) => {
 } 
 
 const destroy = async (params) => {
-    const { id } = params;
+    const categoryId = parseInt(params.id);
     const category = await prisma.category.delete({
         where: {
-            id
+            id: categoryId
         }
     })
     return category;
