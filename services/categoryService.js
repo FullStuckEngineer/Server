@@ -1,7 +1,8 @@
 const prisma = require("../lib/prisma");
 
-const findAll = async () => {
-    const categories = await prisma.category.findMany()
+const findAll = async (params) => {
+    const categories = await prisma.category.findMany();
+    if (!categories) throw { name: "Categories Not Found" };
     return categories;
 } 
 
@@ -11,7 +12,8 @@ const findOne = async (params) => {
         where: {
             id: categoryId
         }
-    })
+    });
+    if (!category) throw { name: "Category Not Found" };
     return category;
 } 
 
@@ -23,7 +25,8 @@ const create = async (params) => {
             created_at: new Date(),
             update_at: new Date()
         }
-    })
+    });
+    if (!category) throw { name: "Failed to Create Category" };
     return category;
 } 
 
@@ -38,6 +41,7 @@ const update = async (params) => {
             update_at: new Date()
         }
     })
+    if (!category) throw { name: "Failed to Update Category=" };
     return category;
 } 
 
@@ -48,6 +52,7 @@ const destroy = async (params) => {
             id: categoryId
         }
     })
+    if (!category) throw { name: "Failed to Delete Category" };
     return category;
 } 
 
