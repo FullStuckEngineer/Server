@@ -1,6 +1,6 @@
 const prisma = require("../lib/prisma");
 
-const findAll = async (params) => {
+const findAll = async () => {
     const categories = await prisma.category.findMany()
     return categories;
 } 
