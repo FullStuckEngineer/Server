@@ -30,11 +30,23 @@ model User {
 model City {
   id         Int       @id @default(autoincrement())
   name       String
+  //province_id Int
+  //province    Province    @relation(fields: [city_id], references: [id])
+  //type        String
+  //postal_code Int
   addresses  Address[]
   stores     Store[]
   created_at DateTime  @default(now())
   update_at  DateTime  @default(now()) @updatedAt
 }
+
+// model Province {
+//   id         Int      @id @default(autoincrement())
+//   name       String
+//   city       City[]
+//   created_at DateTime @default(now())
+//   update_at  DateTime @default(now()) @updatedAt
+// }
 
 model Address {
   id             Int        @id @default(autoincrement())
