@@ -3,6 +3,8 @@ const cartController = require("../controllers/cartController")
 const { authorization } = require("../middlewares/auth")
 
 router.get("/",authorization(["user"]), cartController.findOne)
-router.put("/:id", cartController.update)
+router.get("/shipping_costs", cartController.getShippingCost )
+router.put("/", cartController.update)
 router.delete("/:id", cartController.destroy)
+//id product yang akan di hapus
 module.exports = router

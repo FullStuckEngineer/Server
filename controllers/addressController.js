@@ -11,7 +11,8 @@ const findAll = async (req, res, next) => {
 
 const findOne = async (req, res, next) => {
     try {
-        const findAddress = await addressService.findOne(req.params)
+        const params = { user_id: req.loggedUser.id, id: req.params.id }
+        const findAddress = await addressService.findOne(params)
         res.status(200).json(findAddress)
     } catch (error) {
         next(error)
@@ -32,7 +33,8 @@ const create = async (req, res, next) => {
 
 const update = async (req, res, next) => {
     try {
-        const params = {id: req.loggedUser.id, body: req.body}
+        console.log(req.loggedUser)
+        const params = { user_id: req.loggedUser.id, id: req.params.id, body: req.body }
         const updateAddress = await addressService.update(params)
         res.status(200).json({message: "Address Updated", data: updateAddress})
     } catch (error) {
