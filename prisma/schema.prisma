@@ -66,11 +66,12 @@ model Store {
 }
 
 model Category {
-  id         Int       @id @default(autoincrement())
-  name       String
-  products   Product[]
-  created_at DateTime  @default(now())
-  update_at  DateTime  @default(now()) @updatedAt
+  id                Int         @id @default(autoincrement())
+  name              String
+  products          Product[]
+  created_at        DateTime    @default(now())
+  update_at         DateTime    @default(now()) @updatedAt
+  status            TableStatus @default(Active)
 }
 
 model Product {
@@ -90,6 +91,7 @@ model Product {
   checkout_products CheckoutProduct[]
   created_at        DateTime          @default(now())
   update_at         DateTime          @default(now()) @updatedAt
+  status            TableStatus       @default(Active)
 }
 
 model Courier {
@@ -174,4 +176,9 @@ enum Status {
   delivered
   completed
   cancelled
+}
+
+enum TableStatus {
+  Active
+  Inactive
 }
