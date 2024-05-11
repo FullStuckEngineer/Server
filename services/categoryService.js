@@ -2,7 +2,7 @@ const prisma = require("../lib/prisma");
 const productService = require("./productService");
 
 const findAll = async (params) => {
-    const { page = 1, perPage = 10 } = params;
+    const { page = 1, perPage = 10, role = 'User' } = params;
 
     const offset = (page - 1) * perPage;
     const limit = perPage;
@@ -26,9 +26,10 @@ const findAll = async (params) => {
 }
 
 const findOne = async (params) => {
-    const categoryId = parseInt(params.id);
+    const { id, role } = params;
+    const categoryId = parseInt(id);
 
-    let where = {id: productId};
+    let where = {id: categoryId};
     if (role === 'User') {
         where.status = 'Active';
     }
@@ -78,12 +79,11 @@ const destroy = async (params) => {
         }
     });
 
-    for (const product of products) {
-        await productService.destroy({ id: product.id });
-    }
-
-    if (!deletedProducts) {
-        throw { name: "Failed to Soft Delete Products" };
+    console.log(products);
+    if (products.length > 0) {
+        for (const product of products) {
+            await productService.destroy({ id: product.id });
+        }
     }
 
     // Soft delete category
