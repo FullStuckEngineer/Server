@@ -39,4 +39,4 @@ const destroy = async (req, res, next) => {
   }
 }
 
-module.exports = { findOne, getShippingCost, update, destroy }
+module.exports = { findOne, update, destroy }
