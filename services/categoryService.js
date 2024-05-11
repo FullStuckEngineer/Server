@@ -27,10 +27,14 @@ const findAll = async (params) => {
 
 const findOne = async (params) => {
     const categoryId = parseInt(params.id);
+
+    let where = {id: productId};
+    if (role === 'User') {
+        where.status = 'Active';
+    }
+    
     const category = await prisma.category.findUnique({
-        where: {
-            id: categoryId
-        }
+        where
     });
     if (!category) throw { name: "Category Not Found" };
     return category;
