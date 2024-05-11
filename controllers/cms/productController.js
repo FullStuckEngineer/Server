@@ -1,4 +1,6 @@
-const productService = require('../../services/productService')
+const productService = require('../../services/productService');
+
+const perPage = 10;
 
 const findAll = async (req, res, next) => {
     try{
@@ -18,7 +20,7 @@ const findAll = async (req, res, next) => {
 const findOne = async (req, res, next) => {
     try{
         params = {
-            id: req.params.id,
+            slug: req.params.slug,
             role: 'Admin'
         }
 
@@ -30,7 +32,7 @@ const findOne = async (req, res, next) => {
 } 
 
 const create = async (req, res, next) => {
-    try{
+    try{    
         const product = await productService.create(req.body);
         res.status(200).json({message: "Product Created", data:product});
     } catch(err){
@@ -48,7 +50,7 @@ const uploadImage = async (req, res, next) => {
     } catch(err){
         next
     }
-} 
+}
 
 const update = async (req, res, next) => {
     try {

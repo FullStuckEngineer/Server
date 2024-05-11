@@ -20,7 +20,7 @@ const findAll = async (req, res, next) => {
 const findOne = async (req, res, next) => {
     try {
         params = {
-            id: req.params.id,
+            slug: req.params.slug,
             role: 'User'
         }
         const product = await productService.findOne(params);

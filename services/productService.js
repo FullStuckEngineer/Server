@@ -11,7 +11,7 @@ const findAll = async (params) => {
         where.status = 'Active';
     }
 
-    const products = await prisma.category.findMany({
+    const products = await prisma.product.findMany({
         where,
         skip: offset,
         take: limit,
@@ -22,9 +22,10 @@ const findAll = async (params) => {
 } 
 
 const findOne = async (params) => {
-    const productId = parseInt(params.id);
+    const { slug, role } = params;
+    const productSlug = parseInt(slug);
 
-    let where = {id: productId};
+    let where = {slug: productSlug};
     if (role === 'User') {
         where.status = 'Active';
     }
@@ -46,6 +47,8 @@ const generateSlug = (name) => {
 const create = async (params) => {
     const { name, description, price, weight, category_id, stock, sku, keywords } = params;
 
+    const description_encoded = new TextEncoder().encode(description);
+
     if (stock < 0 || price < 0 || weight < 0) {
         throw { name: "Stock, price, and weight cannot be negative" };
     }
@@ -66,7 +69,7 @@ const create = async (params) => {
     const product = await prisma.product.create({
         data: {
             name,
-            description,
+            description: description_encoded,
             price : parseInt(price),
             weight : parseFloat(weight),
             category_id : parseInt(category_id),
@@ -74,8 +77,6 @@ const create = async (params) => {
             sku,
             slug,
             keywords,
-            shopping_items: [],
-            checkout_products: [],
             created_at: new Date(),
             update_at: new Date()
         }
@@ -93,7 +94,7 @@ const uploadImage = async (params) => {
         },
         data: {
             photo: filePath,
-            updated_at: new Date()
+            update_at: new Date()
         }
     });
     if (!product) throw { name: "Failed to Upload Image" };
@@ -104,7 +105,7 @@ const uploadImage = async (params) => {
 const update = async (params) => {
     const { id, name, description, price, weight, category_id, stock, sku, keywords, shopping_items, checkout_products } = params;
 
-    if ((stock && stock < 0) || (price && price < 0) || (wight && weight < 0)) {
+    if ((stock && stock < 0) || (price && price < 0) || (weight && weight < 0)) {
         throw { name: "Stock, price, and weight cannot be negative" };
     }
 
@@ -124,7 +125,7 @@ const update = async (params) => {
     // TODO: If stock < shopping_items.quantity, destroy shopping item
 
     if (name) {
-        slug = createSlug(name);
+        slug = generateSlug(name);
     }
 
     const dataToUpdate = {
@@ -139,7 +140,7 @@ const update = async (params) => {
         ...(keywords && { keywords }),
         ...(shopping_items && { shopping_items }),
         ...(checkout_products && { checkout_products }),
-        updated_at: new Date()
+        update_at: new Date()
     };
 
     const product = await prisma.product.update({
@@ -164,8 +165,6 @@ const destroy = async (params) => {
         },
         data: {
             stock: 0,
-            shopping_items: [],
-            checkout_products: [],
             status: "Inactive"
         }
     })
