@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const productController = require("../../controllers/cms/productController")
-const { authorization, authentication } = require("../../middlewares/auth")
+const { authorization } = require("../../middlewares/auth")
 const upload = require('../../middlewares/multer');
 
 router.get("/", authorization(["Admin"]), productController.findAll)
