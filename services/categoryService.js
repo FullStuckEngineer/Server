@@ -47,6 +47,21 @@ const update = async (params) => {
 
 const destroy = async (params) => {
     const categoryId = parseInt(params.id);
+
+    // Soft delete product
+    const deletedProducts = await prisma.product.updateMany({
+        where: {
+            category_id: categoryId
+        },
+        data: {
+            status: "Inactive"
+        }
+    });
+
+    if (!deletedProducts) {
+        throw { name: "Failed to Soft Delete Products" };
+    }
+
     const category = await prisma.category.update({
         where: {
             id: categoryId
