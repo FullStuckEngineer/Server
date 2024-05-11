@@ -88,9 +88,10 @@ const create = async (params) => {
 
 const uploadImage = async (params) => {
     const { productId, filePath } = params;
+
     const product = await prisma.product.update({
         where: {
-            id: productId
+            id: parseInt(productId)
         },
         data: {
             photo: filePath,
@@ -161,7 +162,7 @@ const destroy = async (params) => {
 
     const product = await prisma.product.update({
         where: {
-            id: productId
+            id: parseInt(productId)
         },
         data: {
             stock: 0,
