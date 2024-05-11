@@ -23,19 +23,22 @@ const findAll = async (params) => {
 
 const findOne = async (params) => {
     const { slug, role } = params;
-    const productSlug = parseInt(slug);
 
-    let where = {slug: productSlug};
+    let where = { slug };
     if (role === 'User') {
         where.status = 'Active';
     }
 
-    const product = await prisma.product.findUnique({
-        where
+    const foundProduct = await prisma.product.findFirst({
+        where,
     });
-    if (!product) throw { name: "Product Not Found" };
-    return product;
-} 
+
+    if (!foundProduct) {
+        throw { name: "Product Not Found" };
+    }
+
+    return foundProduct;
+}
 
 const generateSlug = (name) => {
     const slugifiedName = name.toLowerCase().replace(/\s+/g, '-');
