@@ -47,12 +47,15 @@ const update = async (params) => {
 
 const destroy = async (params) => {
     const categoryId = parseInt(params.id);
-    const category = await prisma.category.delete({
+    const category = await prisma.category.update({
         where: {
             id: categoryId
+        },
+        data: {
+            status: "Inactive"
         }
     })
-    if (!category) throw { name: "Failed to Delete Category" };
+    if (!category) throw { name: "Failed to Soft Delete Category" };
     return category;
 } 
 
