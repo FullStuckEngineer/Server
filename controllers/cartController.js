@@ -9,11 +9,13 @@ const findOne = async (req, res, next) => {
   }
 }
 
+/*
 const getShippingCost = async (req, res, next) => {
   // Get shippingCost from RajaOngkir
   // kirim city_id, kirim total_weight ke RajaOngkir
   // kirim courier = JNE, PostIndonesia, TIKI
 }
+*/
 
 const update = async (req, res, next) => {
   try {

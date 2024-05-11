@@ -1,4 +1,6 @@
-const prisma = require("../lib/prisma")
+const prisma = require("../lib/prisma");
+const axios = require('axios');
+require("dotenv").config();
 
 const findOne = async (params) => {
     try {
@@ -135,10 +137,17 @@ const update = async (params) => {
         const total_weight = updatedShoppingItems.reduce((sumWeight, item) => sumWeight + (item.weight * item.quantity), 0);
 
         // TODO: Get shipping cost
-        // const shipping_cost = getShippingCost(shipping_method, address_id, shopping_items, total_weight);
+        const city_id = await prisma.address.findUnique({
+            where: { id: Number(address_id) },
+            select: { city_id: true }
+        });
+
+        const courier_name = courier.name;
+
+        const shipping_cost = getShippingCost(city_id, total_weight, courier_name)
 
         // TODO : Get Total Cost = total (price * quantity) of shopping_items + shipping_cost
-        const total_cost = updatedShoppingItems.reduce((sumPrice, item) => sumPrice + (item.price * item.quantity), 0);
+        const total_cost = updatedShoppingItems.reduce((sumPrice, item) => sumPrice + (item.price * item.quantity), 0) + shipping_cost;
         
         const dataToUpdate = {
             ...(shipping_cost && { shipping_cost }),
@@ -182,5 +191,31 @@ const destroy = async (params) => {
         throw error
     }
 }
+
+const getShippingCost = async (city_id, total_weight, courier) => {
+    try {
+        const response = await axios.post(
+            'https://api.rajaongkir.com/starter/cost',
+            {
+                origin: 501,
+                destination: city_id,
+                weight: total_weight,
+                courier: courier
+            },
+            {
+                headers: {
+                    key: process.env.RAJAONGKIR_API_KEY,
+                    'content-type': 'application/x-www-form-urlencoded'
+                }
+            }
+        );
+
+        const shippingCost = response.data.rajaongkir.results[0].costs[0].costs[0].value;
+        return shippingCost;
+    } catch (error) {
+        console.error('Error fetching shipping cost:', error.message);
+        throw new Error('Failed to fetch shipping cost');
+    }
+};
 
 module.exports = { findOne, update, destroy }
