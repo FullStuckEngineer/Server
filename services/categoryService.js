@@ -2,7 +2,7 @@ const prisma = require("../lib/prisma");
 const productService = require("./productService");
 
 const findAll = async (params) => {
-    const { page = 1, perPage = 10 } = params;
+    const { page = 1, perPage = 10, role = 'User' } = params;
 
     const offset = (page - 1) * perPage;
     const limit = perPage;
@@ -26,9 +26,10 @@ const findAll = async (params) => {
 }
 
 const findOne = async (params) => {
-    const categoryId = parseInt(params.id);
+    const { id, role } = params;
+    const categoryId = parseInt(id);
 
-    let where = {id: productId};
+    let where = {id: categoryId};
     if (role === 'User') {
         where.status = 'Active';
     }
