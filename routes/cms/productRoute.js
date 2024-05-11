@@ -1,11 +1,13 @@
 const router = require('express').Router()
 const productController = require("../../controllers/cms/productController")
+const { authorization, authentication } = require("../../middlewares/auth")
+const upload = require('../../middlewares/multer');
 
-router.get("/", productController.findAll)
-router.get("/:id", productController.findOne)
-router.post("/", productController.create)
-router.post("/uploads", productController.uploadImage)
-router.put("/:id", productController.update)
-router.delete("/:id", productController.destroy)
+router.get("/", authorization(["Admin"]), productController.findAll)
+router.get("/:id", authorization(["Admin"]), productController.findOne)
+router.post("/", authorization(["Admin"]), productController.create)
+router.post("/uploads", authorization(["Admin"]), upload.single('image'), productController.uploadImage)
+router.put("/:id", authorization(["Admin"]), productController.update)
+router.delete("/:id", authorization(["Admin"]), productController.destroy)
 
 module.exports = router
