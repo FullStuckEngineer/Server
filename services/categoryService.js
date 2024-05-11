@@ -1,4 +1,5 @@
 const prisma = require("../lib/prisma");
+const productService = require("./productService");
 
 const findAll = async (params) => {
     const { page = 1, perPage = 10 } = params;
