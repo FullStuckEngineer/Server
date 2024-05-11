@@ -79,12 +79,11 @@ const destroy = async (params) => {
         }
     });
 
-    for (const product of products) {
-        await productService.destroy({ id: product.id });
-    }
-
-    if (!deletedProducts) {
-        throw { name: "Failed to Soft Delete Products" };
+    console.log(products);
+    if (products.length > 0) {
+        for (const product of products) {
+            await productService.destroy({ id: product.id });
+        }
     }
 
     // Soft delete category
