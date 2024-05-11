@@ -1,17 +1,36 @@
 const prisma = require("../lib/prisma");
 
 const findAll = async (params) => {
-    const products = await prisma.product.findMany();
+    const { page = 1, perPage = 10, role = 'User' } = params;
+
+    const offset = (page - 1) * perPage;
+    const limit = perPage;
+
+    let where = {};
+    if (role === 'User') {
+        where.status = 'Active';
+    }
+
+    const products = await prisma.category.findMany({
+        where,
+        skip: offset,
+        take: limit,
+    });
+
     if (!products) throw { name: "Products Not Found" };
     return products;
 } 
 
 const findOne = async (params) => {
     const productId = parseInt(params.id);
+
+    let where = {id: productId};
+    if (role === 'User') {
+        where.status = 'Active';
+    }
+
     const product = await prisma.product.findUnique({
-        where: {
-            id: productId
-        }
+        where
     });
     if (!product) throw { name: "Product Not Found" };
     return product;
@@ -102,6 +121,8 @@ const update = async (params) => {
         }
     }
 
+    // TODO: If stock < shopping_items.quantity, destroy shopping item
+
     if (name) {
         slug = createSlug(name);
     }
@@ -134,11 +155,17 @@ const update = async (params) => {
 
 const destroy = async (params) => {
     const productId = parseInt(params.id);
+
+    // TODO: Destroy product in shopping_items
+
     const product = await prisma.product.update({
         where: {
             id: productId
         },
         data: {
+            stock: 0,
+            shopping_items: [],
+            checkout_products: [],
             status: "Inactive"
         }
     })
