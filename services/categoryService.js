@@ -1,10 +1,28 @@
 const prisma = require("../lib/prisma");
 
 const findAll = async (params) => {
-    const categories = await prisma.category.findMany();
-    if (!categories) throw { name: "Categories Not Found" };
+    const { page = 1, perPage = 10 } = params;
+
+    const offset = (page - 1) * perPage;
+    const limit = perPage;
+
+    let where = {};
+    if (role === 'User') {
+        where.status = 'Active';
+    }
+
+    const categories = await prisma.category.findMany({
+        where,
+        skip: offset,
+        take: limit,
+    });
+
+    if (!categories) {
+        throw { name: "Categories Not Found" };
+    }
+
     return categories;
-} 
+}
 
 const findOne = async (params) => {
     const categoryId = parseInt(params.id);
@@ -41,7 +59,7 @@ const update = async (params) => {
             update_at: new Date()
         }
     })
-    if (!category) throw { name: "Failed to Update Category=" };
+    if (!category) throw { name: "Failed to Update Category" };
     return category;
 } 
 
@@ -49,19 +67,21 @@ const destroy = async (params) => {
     const categoryId = parseInt(params.id);
 
     // Soft delete product
-    const deletedProducts = await prisma.product.updateMany({
+    const products = await prisma.product.findMany({
         where: {
             category_id: categoryId
-        },
-        data: {
-            status: "Inactive"
         }
     });
+
+    for (const product of products) {
+        await productService.destroy({ id: product.id });
+    }
 
     if (!deletedProducts) {
         throw { name: "Failed to Soft Delete Products" };
     }
 
+    // Soft delete category
     const category = await prisma.category.update({
         where: {
             id: categoryId

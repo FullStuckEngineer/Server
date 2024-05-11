@@ -1,8 +1,16 @@
-const categoryService = require('../services/categoryService')
+const categoryService = require('../services/categoryService');
+
+const perPage = 10;
 
 const findAll = async (req, res, next) => {
     try{
-        const categories = await categoryService.findAll();
+        params = {
+            page: req.query.page? parseInt(req.query.page) : 1,
+            perPage: perPage,
+            role: 'User'
+        }
+
+        const categories = await categoryService.findAll(params);
         res.status(200).json({message: "Category Data Found", data: categories});
     } catch(err){
         next(err);
