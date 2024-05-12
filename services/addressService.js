@@ -1,5 +1,4 @@
 const prisma = require("../lib/prisma")
-const { param } = require("../routes/cartRoute")
 
 const findAll = async (params) => {
     try {
@@ -12,10 +11,10 @@ const findAll = async (params) => {
 }
 
 const findOne = async (params) => {
-    const id = Number(params.id)
+    const { user_id, id } = params
     try {
         const getById = await prisma.address.findUnique({
-            where: { id }
+            where: { user_id, id: Number(id) }
         })
         if (!getById) {
             throw ({ name: "ErrorNotFound", message: "Address Not Found" })
@@ -40,25 +39,34 @@ const create = async (params) => {
 
 const update = async (params) => {
     try {
-        const { id, body } = params
-        const address = await prisma.address.update({
+        const { user_id, id, body } = params
+        const address = await prisma.address.findUnique({
+            where: { id: Number(id) }
+        })
+
+        if (!address || address.user_id !== user_id) {
+            throw { name: "ErrorNotFound" }
+        }
+
+        const updatedAddress = await prisma.address.update({
             where: { id: Number(id) },
             data: body
         })
-        return address
+
+        return updatedAddress
     } catch (error) {
         throw error
     }
 }
 
 const destroy = async (params) => {
-    const {user_id, id} = params
+    const { user_id, id } = params
     try {
-        const findId = await prisma.address.findUnique({where: { user_id, id: Number(id) }})
+        const findId = await prisma.address.findUnique({ where: { user_id, id: Number(id) } })
         if (!findId) {
-            throw {name: "ErrorNotFound"}
+            throw { name: "ErrorNotFound" }
         }
-        const deleteAddress = await prisma.address.delete({where: { user_id, id: Number(id) }})
+        const deleteAddress = await prisma.address.delete({ where: { user_id, id: Number(id) } })
         return deleteAddress
     } catch (error) {
         throw error
