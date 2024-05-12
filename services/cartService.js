@@ -4,13 +4,16 @@ const findOne = async (params) => {
     try {
         const id = Number(params.id)
 
-        //cart
         const getById = await prisma.cart.findUnique({
             where: {
                 user_id: id
             },
             include: {
-                shopping_items: true
+                shopping_items: {
+                    include: {
+                        product: true
+                    }
+                }
             }
         })
         if (!getById) {
@@ -19,31 +22,49 @@ const findOne = async (params) => {
                 message: "Cart Not Found"
             })
         }
-        
-        //shopping_items
-        const shoppingItems = getById.shopping_items
 
-        //total
         let totalPrice = 0
-        for(let x = 0; x < shoppingItems.length; x++){
-           const currentItem = shoppingItems[x]
-           const price = currentItem.price
-           const quantity = currentItem.quantity
-           totalPrice += price * quantity
+        let totalWeight = 0
+
+        for (const item of getById.shopping_items) {
+            const product = await prisma.product.findUnique({
+                where: {
+                    id: item.product_id
+                }
+            })
+
+            await prisma.shoppingItem.update({
+                where: {
+                    id: item.id
+                }, data: {
+                    price: product.price
+                }
+            })
+
+            totalPrice += product.price * item.quantity
+            totalWeight += product.weight * item.quantity
         }
-        console.log(totalPrice)
+
         const cart = await prisma.cart.update({
-            where: { id: getById.id},
-            data: { total_cost: totalPrice},
-            include: { shopping_items: true }
+            where: { id: getById.id },
+            data: {
+                total_cost: totalPrice, total_weight: totalWeight
+            },
+            include: {
+                shopping_items: {
+                    include: {
+                        product: { select: { weight: true } }
+                    }
+                }
+            }
         })
-        console.log(cart)
-     
+
         return cart
     } catch (error) {
         throw error
     }
 }
+
 
 const update = async (params) => {
     try {
@@ -64,19 +85,62 @@ const update = async (params) => {
 }
 
 const destroy = async (params) => {
-    const id = Number(params.id)
     try {
-        if (!id) {
-            throw ({ name: "ErrorNotFound", message: "Cart Not Found" })
-        } else {
-            const deleteCart = await prisma.cart.delete({
-                where: { id }
+        // buat operasi pengurangan harga untuk setiap shopping_item dengan total_cost untuk setiap penghapusan shopping_item
+        // buat operasi pengurangan weight untuk setiap shopping_item dengan total_weight untuk setiap penghapusan shopping_item
+        const { id, idShoppingItem } = params
+
+        const shoppingItems = await prisma.shoppingItem.findUnique({
+            where: {
+                id: Number(idShoppingItem)
+            }, include: {
+                cart: {
+                    select: {
+                        user_id: true, total_cost: true, total_weight: true
+                    }
+                }, product: true
+            }
+        })
+
+        if (!shoppingItems) {
+            throw ({
+                name: "ErrorNotFound",
+                message: "Shopping Item Not Found"
             })
-            return deleteCart
         }
+
+        if (shoppingItems.cart.user_id !== Number(id)) {
+            throw { name: "NotPermitted" }
+        }
+
+        const totalPrice = shoppingItems.price * shoppingItems.quantity
+        const fixPrice = shoppingItems.cart.total_cost - totalPrice
+        const totalWeight = shoppingItems.product.weight * shoppingItems.quantity
+        const fixWeight = shoppingItems.cart.total_weight - totalWeight
+        console.log(fixPrice)
+        console.log(fixWeight)
+
+        await prisma.cart.update({
+            where: {
+                user_id: Number(id)
+            }, data: {
+                total_cost: fixPrice,
+                total_weight: fixWeight
+            }
+        })
+
+        const delShoppingItem = await prisma.shoppingItem.delete({
+            where: {
+                id: Number(idShoppingItem)
+            }
+        })
+
+        return delShoppingItem
     } catch (error) {
         throw error
     }
 }
+
+
 
 module.exports = { findOne, update, destroy }

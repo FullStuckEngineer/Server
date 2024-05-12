@@ -27,7 +27,8 @@ const update = async (req, res, next) => {
 
 const destroy = async (req, res, next) => {
   try {
-    await cartService.destroy(req.params)
+    const params = { id: req.loggedUser.id, idShoppingItem: req.params.id }
+    await cartService.destroy(params)
     res.status(200).json({ message: "Cart Deleted" })
   } catch (error) {
     next(error)
