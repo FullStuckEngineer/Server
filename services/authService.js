@@ -6,6 +6,14 @@ const { generateToken } = require("../lib/jwt")
 const register = async (params) => {
   const { name, email, password, role = "user" } = params;
 
+  const checkEmail = await prisma.user.findUnique({
+    where: {
+      email: email
+    }
+  })
+
+  if (checkEmail) { throw { name: "EmailAlreadyTaken" } }
+
   const newPassword = hashPassword(password);
 
   const user = await prisma.user.create({
@@ -16,6 +24,7 @@ const register = async (params) => {
       role: role,
     },
   });
+
 
   const cart = await prisma.cart.create({
     data: {
@@ -34,16 +43,16 @@ const login = async (params) => {
     },
   });
 
-  if (!foundUser) throw { name: "InvalidCredentials" };
+  if (!foundUser) throw { name: "InvalidEmailOrPassword" };
 
   if (comparePassword(password, foundUser.password)) {
     const accessToken = generateToken({
-        id: foundUser.id,
-        email: foundUser.email
+      id: foundUser.id,
+      email: foundUser.email
     })
     return accessToken
   } else {
-    throw { name: "InvalidCredentials" };
+    throw { name: "InvalidEmailOrPassword" };
   }
 };
 

@@ -28,9 +28,16 @@ const findOne = async (params) => {
 
 const create = async (params) => {
     try {
+        const { receiver_name, receiver_phone, detail_address, city_id, province, postal_code } = params;
+
+        if (!receiver_name || !receiver_phone || !detail_address || !city_id || !province || !postal_code) {
+            throw { name: "PleaseFillAllRequirement" };
+        }
+
         const address = await prisma.address.create({
             data: params
         })
+
         return address
     } catch (error) {
         throw error
@@ -39,7 +46,7 @@ const create = async (params) => {
 
 const update = async (params) => {
     try {
-        const { user_id, id, body } = params
+        const { user_id, id, body, receiver_name, receiver_phone, detail_address, city_id, province, postal_code } = params
         const address = await prisma.address.findUnique({
             where: { id: Number(id) }
         })

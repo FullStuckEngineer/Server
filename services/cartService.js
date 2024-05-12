@@ -23,6 +23,7 @@ const findOne = async (params) => {
             })
         }
 
+        
         let totalPrice = 0
         let totalWeight = 0
 
