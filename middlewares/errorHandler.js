@@ -1,7 +1,7 @@
 const errorHandler = (err, req, res, next) => {
     let errorMessage = "";
 
-    switch(err.name) {
+    switch (err.name) {
         case "ErrorNotFound":
             errorMessage = "Error Not Found";
             res.status(404).json({ message: errorMessage });
@@ -12,6 +12,14 @@ const errorHandler = (err, req, res, next) => {
             break;
         case "EmailAlreadyTaken":
             errorMessage = "Email Already Taken, Try Another";
+            res.status(404).json({ message: errorMessage });
+            break;
+        case "NameAlreadyTaken":
+            errorMessage = "Name Already Taken, Try Another";
+            res.status(404).json({ message: errorMessage });
+            break;
+        case "PasswordTooShort":
+            errorMessage = "Password Must Contain At least 6 Character";
             res.status(404).json({ message: errorMessage });
             break;
         case "PleaseFillAllRequirement":
