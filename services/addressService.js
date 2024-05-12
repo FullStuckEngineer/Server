@@ -46,7 +46,7 @@ const create = async (params) => {
 
 const update = async (params) => {
     try {
-        const { user_id, id, body, receiver_name, receiver_phone, detail_address, city_id, province, postal_code } = params
+        const { user_id, id, body } = params
         const address = await prisma.address.findUnique({
             where: { id: Number(id) }
         })

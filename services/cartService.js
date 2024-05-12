@@ -25,7 +25,7 @@ const findOne = async (params) => {
             })
         }
 
-        
+
         let totalPrice = 0
         let totalWeight = 0
 
@@ -281,4 +281,4 @@ const getShippingCost = async (city_id, total_weight, courier) => {
     }
 };
 
-module.exports = { findOne, update, destroy }
+module.exports = { findOne, getShippingCost, update, destroy }
