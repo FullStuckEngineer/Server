@@ -42,6 +42,11 @@ user 16
 "email": "bigcat@gmail.com",
 "password": "bigcat"
 
+ADMIN
+"name": "adminsemut",
+"email": "adminsemut@gmail.com",
+"password": "user123",
+"role": "admin"
 
      //shopping_items
      // const shoppingItems = getById.shopping_items
@@ -56,3 +61,24 @@ user 16
      // }
 360 270 
 600
+
+
+Github 
+- Periksa semua branch dan lakukan merge ke branch main
+- jika ada kesalahan dalam code saat sudah di merge ke main, dapat melakukan Revert Commit atau Rollback
+
+Yang belum di Push ke repo
+- City
+- Courier
+- Store
+- User
+
+Cara Push ke branch Lokal
+1. git checkout feature/user (nama branch)
+2. git add .
+3. git commit -m "Menyelesaikan fitur pengguna" (pesan)
+4. git push origin feature/user (push ke current branch)
+
+bug user
+- saat update harusnya password di bcrypt lagi
+- harusnya di list detail hanya bisa lihat detail user yg sedang login
