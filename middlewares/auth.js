@@ -47,7 +47,7 @@ const authorization =  (params) => {
 
         if (params.includes(req.loggedUser.role)){
             next()
-        }else{
+        } else {
             throw {name: "Unauthorized"}
         }
   

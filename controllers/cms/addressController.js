@@ -5,14 +5,14 @@ const findAll = async (req, res, next) => {
         const address = await addressService.findAll(req.loggedUser)
         res.status(200).json(address)
     } catch (error) {
-        console.log("Error disini")
         next(error)
     }
 }
 
 const findOne = async (req, res, next) => {
     try {
-        const findAddress = await addressService.findOne(req.params)
+        const params = { user_id: req.loggedUser.id, id: req.params.id }
+        const findAddress = await addressService.findOne(params)
         res.status(200).json(findAddress)
     } catch (error) {
         next(error)
@@ -33,7 +33,7 @@ const create = async (req, res, next) => {
 
 const update = async (req, res, next) => {
     try {
-        const params = {id: req.loggedUser.id, body: req.body}
+        const params = { user_id: req.loggedUser.id, id: req.params.id, body: req.body }
         const updateAddress = await addressService.update(params)
         res.status(200).json({message: "Address Updated", data: updateAddress})
     } catch (error) {
@@ -50,5 +50,6 @@ const destroy = async (req, res, next) => {
         next(error)
     }
  }
+
 
 module.exports = { findAll, findOne, create, update, destroy }
