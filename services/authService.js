@@ -4,25 +4,49 @@ const { generateToken } = require("../lib/jwt")
 
 
 const register = async (params) => {
+
   const { name, email, password, role = "user" } = params;
 
-  const newPassword = hashPassword(password);
+  if (password.length <= 6) {
+    console.log(password.length)
+    throw { name: "PasswordTooShort" }
+  } else {
+    const checkEmail = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: email },
+          { name: name },
+        ]
+      }
+    })
 
-  const user = await prisma.user.create({
-    data: {
-      name,
-      email,
-      password: newPassword,
-      role: role,
-    },
-  });
+    if (checkEmail) {
+      if (checkEmail.email === email) {
+        throw { name: "EmailAlreadyTaken" }
+      } else if (checkEmail.name === name) {
+        throw { name: "NameAlreadyTaken" }
+      }
+    }
 
-  const cart = await prisma.cart.create({
-    data: {
-      user_id: user.id,
-    },
-  });
-  return user;
+
+    const newPassword = hashPassword(password);
+
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: newPassword,
+        role: role,
+      },
+    });
+
+    const cart = await prisma.cart.create({
+      data: {
+        user_id: user.id,
+      },
+    });
+    return user;
+  }
 };
 
 const login = async (params) => {
@@ -34,16 +58,16 @@ const login = async (params) => {
     },
   });
 
-  if (!foundUser) throw { name: "InvalidCredentials" };
+  if (!foundUser) throw { name: "InvalidEmailOrPassword" };
 
   if (comparePassword(password, foundUser.password)) {
     const accessToken = generateToken({
-        id: foundUser.id,
-        email: foundUser.email
+      id: foundUser.id,
+      email: foundUser.email
     })
     return accessToken
   } else {
-    throw { name: "InvalidCredentials" };
+    throw { name: "InvalidEmailOrPassword" };
   }
 };
 
