@@ -107,74 +107,110 @@ const uploadImage = async (params) => {
 } 
 
 const update = async (params) => {
-    const { id, name, description, price, weight, category_id, stock, sku, keywords, shopping_items, checkout_products } = params;
+    try{
+        await prisma.$transaction(async (prisma) => {
+            const { id, name, description, price, weight, category_id, stock, sku, keywords, shopping_items, checkout_products } = params;
 
-    if ((stock && stock < 0) || (price && price < 0) || (weight && weight < 0)) {
-        throw { name: "Stock, price, and weight cannot be negative" };
-    }
-
-    if (category_id) {
-        const category = await prisma.category.findFirst({
-            where: {
-                id: parseInt(category_id),
-                status: 'Active'
+            if ((stock && stock < 0) || (price && price < 0) || (weight && weight < 0)) {
+                throw { name: "Stock, price, and weight cannot be negative" };
             }
+
+            if (category_id) {
+                const category = await prisma.category.findFirst({
+                    where: {
+                        id: parseInt(category_id),
+                        status: 'Active'
+                    }
+                });
+
+                if (!category) {
+                    throw { name: "Category Not Found or Inactive" };
+                }
+            }
+
+            // If stock < shopping_items.quantity, destroy shopping item
+            if (shopping_items) {
+                for (let i = 0; i < shopping_items.length; i++) {
+                    const shopping_item = shopping_items[i];
+                    if (shopping_item.quantity > stock) {
+                        // Set Shopping Item Quantity to 0
+                        shopping_item.quantity = 0;
+                        
+                        // Destroy Shopping Item
+                        const destroyedShoppingItem = await prisma.shoppingItem.delete({
+                            where: {
+                                id: shopping_item.id
+                            }
+                        });
+                        if (!destroyedShoppingItem) throw { name: "Failed to Update Product" };
+                    }
+                }
+            }
+
+            if (name) {
+                slug = generateSlug(name);
+            }
+
+            const dataToUpdate = {
+                ...(name && { name }),
+                ...(description && { description }),
+                ...(price && { price }),
+                ...(weight && { weight }),
+                ...(category_id && { category_id }),
+                ...(stock && { stock }),
+                ...(sku && { sku }),
+                ...(slug && { slug }),
+                ...(keywords && { keywords }),
+                ...(shopping_items && { shopping_items }),
+                ...(checkout_products && { checkout_products }),
+                update_at: new Date()
+            };
+
+            const product = await prisma.product.update({
+                where: {
+                    id
+                },
+                data: dataToUpdate
+            });
+            if (!product) throw { name: "Failed to Update Product" };
+
+            return product;
         });
-
-        if (!category) {
-            throw { name: "Category Not Found or Inactive" };
-        }
+    } catch (error) {
+        throw { name: "Failed to Update Product" };
     }
-
-    // TODO: If stock < shopping_items.quantity, destroy shopping item
-
-    if (name) {
-        slug = generateSlug(name);
-    }
-
-    const dataToUpdate = {
-        ...(name && { name }),
-        ...(description && { description }),
-        ...(price && { price }),
-        ...(weight && { weight }),
-        ...(category_id && { category_id }),
-        ...(stock && { stock }),
-        ...(sku && { sku }),
-        ...(slug && { slug }),
-        ...(keywords && { keywords }),
-        ...(shopping_items && { shopping_items }),
-        ...(checkout_products && { checkout_products }),
-        update_at: new Date()
-    };
-
-    const product = await prisma.product.update({
-        where: {
-            id
-        },
-        data: dataToUpdate
-    });
-    if (!product) throw { name: "Failed to Update Image" };
-
-    return product;
 }
 
 const destroy = async (params) => {
-    const productId = parseInt(params.id);
+    try{
+        await prisma.$transaction(async (prisma) => {
+            const productId = parseInt(params.id);
 
-    // TODO: Destroy product in shopping_items
-
-    const product = await prisma.product.update({
-        where: {
-            id: parseInt(productId)
-        },
-        data: {
-            stock: 0,
-            status: "Inactive"
-        }
-    })
-    if (!product) throw { name: "Failed to Delete Image" };
-
-    return product;
+            // Destroy product in shopping_items
+            const shopping_items = await prisma.shoppingItem.deleteMany({
+                where: {
+                    product_id: productId
+                }
+            });
+        
+            if (!shopping_items) throw { name: "Failed to Delete Shopping Items" };
+        
+            const product = await prisma.product.update({
+                where: {
+                    id: parseInt(productId)
+                },
+                data: {
+                    stock: 0,
+                    status: "Inactive"
+                }
+            })
+            if (!product) throw { name: "Failed to Delete Image" };
+        
+            return product;
+        });
+    } catch (error) {
+        throw { name: "Failed to Delete Product" };
+    }
 }
 
 module.exports = { findAll, findOne, create, update, destroy, uploadImage }
