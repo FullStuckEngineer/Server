@@ -223,14 +223,42 @@ const destroy = async (params) => {
         await prisma.$transaction(async (prisma) => {
             const productId = parseInt(params.id);
 
-            // Destroy product in shopping_items
-            const shopping_items = await prisma.shoppingItem.deleteMany({
+            // Find Shopping Items by product_id
+            const shopping_items = await prisma.shoppingItem.findMany({
                 where: {
                     product_id: productId
                 }
             });
-        
-            if (!shopping_items) throw { name: "Failed to Delete Shopping Items" };
+
+            // If shopping_items exist, set quantity to 0
+            if (shopping_items) {
+                for (let i = 0; i < shopping_items.length; i++) {
+                    const shopping_item = shopping_items[i];
+                    shopping_item.quantity = 0;
+
+                    // Get All Cart_id by shopping_item.id
+                    const carts = await prisma.shoppingItem.findMany({
+                        where: {
+                            id: shopping_item.id
+                        },
+                        select: {
+                            cart_id: true
+                        }
+                    });
+
+                    // Update every cart_id
+                    if (carts.length > 0) {
+                        for (let j = 0; j < carts.length; j++) {
+                            const cart = carts[j];
+                            await cartService.update({
+                                id: cart.cart_id,
+                                shopping_items: [shopping_item]
+                            });
+                            console.log("Cart Updated");
+                        }
+                    }
+                }
+            }
         
             const product = await prisma.product.update({
                 where: {
