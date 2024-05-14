@@ -1,4 +1,6 @@
 const prisma = require("../lib/prisma");
+const cartService = require("./cartService");
+const { TextEncoder, TextDecoder } = require('util');
 
 const findAll = async (params) => {
     const { page = 1, perPage = 10, role = 'User' } = params;
@@ -15,6 +17,11 @@ const findAll = async (params) => {
         where,
         skip: offset,
         take: limit,
+    });
+    
+    // Decode description
+    products.forEach((product) => {
+        product.description = new TextDecoder().decode(product.description);
     });
 
     if (!products) throw { name: "Products Not Found" };
@@ -36,6 +43,9 @@ const findOne = async (params) => {
     if (!foundProduct) {
         throw { name: "Product Not Found" };
     }
+
+    // Decode description
+    foundProduct.description = new TextDecoder().decode(foundProduct.description);
 
     return foundProduct;
 }
@@ -109,12 +119,15 @@ const uploadImage = async (params) => {
 const update = async (params) => {
     try{
         await prisma.$transaction(async (prisma) => {
-            const { id, name, description, price, weight, category_id, stock, sku, keywords, shopping_items, checkout_products } = params;
+            const { id, name, description, price, weight, category_id, stock, sku, keywords } = params;
+
+            if (!id) throw { name: "Product ID is required" };
 
             if ((stock && stock < 0) || (price && price < 0) || (weight && weight < 0)) {
                 throw { name: "Stock, price, and weight cannot be negative" };
             }
 
+            // Check if category is exists
             if (category_id) {
                 const category = await prisma.category.findFirst({
                     where: {
@@ -128,32 +141,56 @@ const update = async (params) => {
                 }
             }
 
-            // If stock < shopping_items.quantity, destroy shopping item
+            // Get shopping_items by product_id
+            const shopping_items = await prisma.shoppingItem.findMany({
+                where: {
+                    product_id: id
+                }
+            });
+
+            // If stock < shopping_items.quantity, delete shopping_items
             if (shopping_items) {
                 for (let i = 0; i < shopping_items.length; i++) {
                     const shopping_item = shopping_items[i];
                     if (shopping_item.quantity > stock) {
-                        // Set Shopping Item Quantity to 0
-                        shopping_item.quantity = 0;
+                        console.log("Stock < Quantity");
                         
-                        // Destroy Shopping Item
-                        const destroyedShoppingItem = await prisma.shoppingItem.delete({
+                        // Set quantity to 0
+                        shopping_item.quantity = 0;
+
+                        // Get All Cart_id by shopping_item.id
+                        const carts = await prisma.shoppingItem.findMany({
                             where: {
                                 id: shopping_item.id
+                            },
+                            select: {
+                                cart_id: true
                             }
                         });
-                        if (!destroyedShoppingItem) throw { name: "Failed to Update Product" };
+
+                        // Update every cart_id
+                        if (carts.length > 0) {
+                            for (let j = 0; j < carts.length; j++) {
+                                const cart = carts[j];
+                                await cartService.update({
+                                    id: cart.cart_id,
+                                    shopping_items: [shopping_item]
+                                });
+                                console.log("Cart Updated");
+                            }
+                        }
                     }
                 }
             }
-
+            
+            const slug = null;
             if (name) {
                 slug = generateSlug(name);
             }
 
             const dataToUpdate = {
                 ...(name && { name }),
-                ...(description && { description }),
+                ...(description && { description: new TextEncoder().encode(description) }),
                 ...(price && { price }),
                 ...(weight && { weight }),
                 ...(category_id && { category_id }),
@@ -161,10 +198,10 @@ const update = async (params) => {
                 ...(sku && { sku }),
                 ...(slug && { slug }),
                 ...(keywords && { keywords }),
-                ...(shopping_items && { shopping_items }),
-                ...(checkout_products && { checkout_products }),
                 update_at: new Date()
             };
+
+            console.log("DataToUpdate", dataToUpdate);
 
             const product = await prisma.product.update({
                 where: {
