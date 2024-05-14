@@ -4,7 +4,7 @@ const prisma = require("../lib/prisma");
 var options = {
     method: 'GET',
     url: 'https://api.rajaongkir.com/starter/city',
-    headers: { key: '6cd80e8ba0ac459d16ef674579802527' }
+    headers: { key: process.env.RAJAONGKIR_SECRET_KEY }
 };
 
 request(options, async function (error, response, body) {
