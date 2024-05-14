@@ -129,6 +129,7 @@ model ShoppingItem {
   cart_id    Int
   cart       Cart     @relation(fields: [cart_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
   price      Int?
+  weight     Int?
   created_at DateTime @default(now())
   update_at  DateTime @default(now()) @updatedAt
 }
