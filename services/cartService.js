@@ -72,14 +72,23 @@ const findOne = async (params) => {
 const update = async (params) => {
     try {
         await prisma.$transaction(async (prisma) => {
-            const { id, address_id: paramAddressId, courier_id: paramCourierId, shipping_method: paramShippingMethod, shopping_items, logged_user_id } = params;
+            const { id, address_id: paramAddressId, courier_id: paramCourierId, shipping_method: paramShippingMethod, shopping_items: paramShoppingItem, logged_user_id } = params;
+
+            if (!id) throw ({ name: "ErrorBadRequest", message: "Cart ID is required" });
+
+            // Get current cart data
+            let currentCart = await prisma.cart.findUnique({
+                where: { id: Number(id) },
+                select: { address_id: true, courier_id: true, shipping_method: true, shopping_items: true }
+            });
 
             let total_weight = 0;
             let shipping_cost = 0;
             let total_cost = 0;
-            let address_id = null;
-            let courier_id = null;
-            let shipping_method = null;
+            let address_id = currentCart.address_id;
+            let courier_id = currentCart.courier_id;
+            let shipping_method = currentCart.shipping_method;
+            let shopping_items = [];
 
             if (paramAddressId !== undefined) {
                 address_id = paramAddressId;
@@ -89,6 +98,9 @@ const update = async (params) => {
             }
             if (paramShippingMethod !== undefined) {
                 shipping_method = paramShippingMethod;
+            }
+            if (paramShoppingItem !== undefined) {
+                shopping_items = paramShoppingItem;
             }
             
             // Check if user_id and logged_user_id are the same
@@ -103,23 +115,27 @@ const update = async (params) => {
             }
 
             // Check if user_id from address_id and logged_user_id are the same
-            let address_id_cart = await prisma.address.findUnique({
-                where: { id: Number(address_id) },
-                select: { user_id: true }
-            });
+            if (paramAddressId !== null) {
+                let address_id_cart = await prisma.address.findUnique({
+                    where: { id: Number(address_id) },
+                    select: { user_id: true }
+                });
 
-            address_id_cart = address_id_cart.user_id;
+                address_id_cart = address_id_cart.user_id;
 
-            if (logged_user_id !== address_id_cart) {
-                throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
+                if (logged_user_id !== address_id_cart) {
+                    throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
+                }
             }
 
             // Check if courier_id exist
-            const courier = await prisma.courier.findUnique({
-                where: { id: Number(courier_id) }
-            });
-            if (!courier) {
-                throw ({ name: "ErrorNotFound", message: "Courier Not Found" })
+            if (paramCourierId !== null) {
+                const courier = await prisma.courier.findUnique({
+                    where: { id: Number(courier_id) }
+                });
+                if (!courier) {
+                    throw ({ name: "ErrorNotFound", message: "Courier Not Found" })
+                }
             }
 
             // Check if product in shopping_items exist and stock is enough
