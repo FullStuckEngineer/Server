@@ -56,10 +56,9 @@ const update = async (params) => {
         }
 
         const updatedAddress = await prisma.address.update({
-            where: { id: Number(id) },
+            where: { id: Number(id)},
             data: body
         })
-
         return updatedAddress
     } catch (error) {
         throw error

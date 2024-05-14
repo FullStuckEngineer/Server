@@ -1,22 +1,134 @@
-const findAll = async (params) => {} 
+const prisma = require("../lib/prisma")
 
-const findOne = async (params) => {} 
+const findAll = async (params) => {
+    // Filter for findAll
+    //  filter by courier
+    //  filter by order id
+    //  filter by user
+    try {
+        const id = Number(params.id)
+
+        //check user
+        const getById = await prisma.checkout.findMany({
+            where: {
+                user_id: id
+            },
+            include: {
+                address: true, courier: true, checkout_products: true
+            }
+        })
+
+        if (!getById) {
+            throw ({ name: "ErrorNotFound", message: "Checkout List Not Found" })
+        }
+
+        return getById
+    } catch (error) {
+        throw error
+    }
+}
+
+const findOne = async (params) => { }
 
 const create = async (params) => {
-    //relasi user, address, courier
-    //user dapat memilih payment method
-    //user dapat memilih bank untuk pembayaran
-    //user akan mendapatkan payment receipt
-    //user akan mendapa status pembayaran, pengiriman?
-    //user akan mendapat invoice
-    //user akan mendapat shipping method
-    //user akan mendapat midtrans data(diperlihatkan)
-    //user akan mendapatkan data total weight, total cost
-    //user akan mendapatkan shipping note
-    //user akan mendapatkan shipping cost
-    //user akan mendapatkan checkout products
-} 
+    //Fitur Checkout 
+    // - pengecekan courier
+    // - pengecekan ongkir
+    // - pengecekan address
+    // - pengecekan stok
+    // - pengurangan stok
+    // - pembayaran
+    // - payment gateway
+    // - update status
+    // - validasi field
+    // - pagination
+    // - filter
+    // - Checkout Product?
+    try {
+        const { user_id } = params
 
-const update = async (params) => {} 
+        //get courier_id, total_cost, total_weight, shipping_cost from cart
+        const cart = await prisma.cart.findUnique({
+            where: {
+                user_id: Number(user_id)
+            },
+            select: {
+                courier_id: true,
+                total_cost: true,
+                total_weight: true,
+                shiping_cost: true,
+                shopping_items: {
+                    select: {
+                        product_id: true,
+                        quantity: true
+                    }
+                }
+            },
+        })
+        // set default courier_id to 1
+        if (cart.courier_id === null) {
+            await prisma.cart.update({
+                where: {
+                    user_id: Number(user_id)
+                },
+                data: {
+                    courier_id: 1
+                }
+            })
+        }
+
+        // check stock product
+        cart.shopping_items.forEach(async (item) => {
+            try {
+                const product = await prisma.product.findUnique({
+                    where: {
+                        id: item.product_id
+                    }
+                })
+                if (product.stock < item.quantity) {
+                    throw ({ name: "ErrorNotEnoughStock", message: "Not enough stock" })
+                }
+
+                // update stock
+                await prisma.product.update({
+                    where: {
+                        id: item.product_id
+                    },
+                    data: {
+                        stock: product.stock - item.quantity
+                    }
+                })
+            } catch (error) {
+                throw error
+            }
+        })
+
+        const createCheckout = await prisma.checkout.create({
+            data: {
+                ...params,
+                courier_id: cart.courier_id,
+                total_cost: cart.total_cost,
+                total_weight: cart.total_weight
+                //address?
+                //payment_method?
+                //bank?
+                //payment_receipt?
+                //STATUS: default waiting payment
+                //invoice (auto generate)
+                //midtrans_data?
+                //shipping_note?
+                //shipping_cost?
+                //shipping_method?
+                //checkout_products?
+            }
+        });
+        console.log(cart)
+        return createCheckout
+    } catch (error) {
+        throw error;
+    }
+}
+
+const update = async (params) => { }
 
 module.exports = { findAll, findOne, create, update }

@@ -2,6 +2,10 @@ const errorHandler = (err, req, res, next) => {
     let errorMessage = "";
 
     switch (err.name) {
+        case "Unauthorized":
+            errorMessage = "Unauthorized";
+            res.status(404).json({ message: errorMessage });
+            break;
         case "ErrorNotFound":
             errorMessage = "Error Not Found";
             res.status(404).json({ message: errorMessage });
@@ -30,8 +34,25 @@ const errorHandler = (err, req, res, next) => {
             errorMessage = "You Are Not Permitted to Delete This Shopping Item";
             res.status(404).json({ message: errorMessage });
             break;
+        case "StoreLimitReached":
+            errorMessage = "Maximum Store Limit Reached";
+            res.status(404).json({ message: errorMessage });
+            break;
+        case "InvalidCourier":
+            errorMessage = "Courier Not Found";
+            res.status(404).json({ message: errorMessage });
+            break;
+        case "InvalidCredentials":
+            errorMessage = "WRONG EMAIL OR PASSWORD";
+            res.status(404).json({ message: errorMessage });
+            break;
+        case "CourierNotFound":
+            errorMessage = "Invalid ID";
+            res.status(404).json({ message: errorMessage });
+            break;
         default:
             errorMessage = "Internal Server Error";
+            console.log(err)
             res.status(500).json({ message: errorMessage });
             break;
     }

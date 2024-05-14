@@ -26,21 +26,71 @@ const findOne = async (params) => {
 }
 
 const create = async (params) => {
-    //validasi admin?
     try {
-     const { body } = params   
-     
+        const totalStore = await prisma.store.count()
+
+        if (totalStore >= 1) {
+            throw { name: "StoreLimitReached" }
+        }
+
+        const { name, city_id, province, postal_code, bank_account_number } = params
+
+        if (!name || !city_id || !province || !postal_code || !bank_account_number) {
+            throw { name: "PleaseFillAllRequirement" }
+        }
+        const createStore = await prisma.store.create({
+            data: params
+        })
+        return createStore
     } catch (error) {
         throw error
     }
- }
+}
 
 const update = async (params) => {
-     //validasi admin?
- }
+    try {
+        const { id, body } = params
+        const findStore = await prisma.store.findUnique({
+            where: { id: Number(id) },
+        })
+
+        if (!findStore) {
+            throw { name: "ErrorNotFound" }
+        }
+
+        const updateStore = await prisma.store.update({
+            where:
+            {
+                id: Number(id)
+            },
+            data: body 
+        })
+        return updateStore
+    } catch (error) {
+        throw error
+    }
+}
 
 const destroy = async (params) => {
-     //validasi admin?
- }
+    const { id } = params
+    try {
+        const findStore = await prisma.store.findUnique({
+            where: { id: Number(id) },
+        })
+
+        if (!findStore) {
+            throw { name: "ErrorNotFound" }
+        }
+        
+        const deleteStore = await prisma.store.delete({
+            where: {
+                id: Number(id)
+            }
+        })
+        return deleteStore
+    } catch (error) {
+        throw error
+    }
+}
 
 module.exports = { findAll, findOne, create, update, destroy }

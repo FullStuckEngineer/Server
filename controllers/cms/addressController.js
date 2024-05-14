@@ -33,7 +33,6 @@ const create = async (req, res, next) => {
 
 const update = async (req, res, next) => {
     try {
-        console.log(req.loggedUser)
         const params = { user_id: req.loggedUser.id, id: req.params.id, body: req.body }
         const updateAddress = await addressService.update(params)
         res.status(200).json({message: "Address Updated", data: updateAddress})

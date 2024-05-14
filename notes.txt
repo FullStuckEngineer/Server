@@ -42,6 +42,11 @@ user 16
 "email": "bigcat@gmail.com",
 "password": "bigcat"
 
+ADMIN
+"name": "adminsemut",
+"email": "adminsemut@gmail.com",
+"password": "user123",
+"role": "admin"
 
      //shopping_items
      // const shoppingItems = getById.shopping_items
@@ -54,5 +59,53 @@ user 16
      //     const quantity = currentItem.quantity
      //     totalPrice += price * quantity
      // }
-360 270 
-600
+
+
+Github 
+- Periksa semua branch dan lakukan merge ke branch main
+- jika ada kesalahan dalam code saat sudah di merge ke main, dapat melakukan Revert Commit atau Rollback
+
+Yang belum di Push ke repo
+- City
+- Courier
+- Store
+- User
+
+Cara Push ke branch Lokal
+1. git checkout feature/user (nama branch)
+2. git add .
+3. git commit -m "Menyelesaikan fitur pengguna" (pesan)
+4. git push origin feature/user (push ke current branch)
+
+bug user
+- saat update harusnya password di bcrypt lagi
+- harusnya di list detail hanya bisa lihat detail user yg sedang login
+
+    //relasi user, address, courier
+    //user dapat memilih payment method
+    //user dapat memilih bank untuk pembayaran
+    //user akan mendapatkan payment receipt
+    //user akan mendapa status pembayaran, pengiriman?
+    //user akan mendapat invoice
+    //user akan mendapat shipping method
+    //user akan mendapat midtrans data(diperlihatkan)
+    //user akan mendapatkan data total weight, total cost
+    //user akan mendapatkan shipping note
+    //user akan mendapatkan shipping cost
+    //user akan mendapatkan checkout products
+
+Checkout itu fiturnya:
+
+- pengecekan courier
+- pengecekan ongkir
+- pengecekan address
+- pengecekan stok
+- pengurangan stok
+- pembayaran
+- payment gateway
+- update status
+- validasi field
+- pagination
+- filter
+
+Seeding RajaOngkir City: npx prisma db seed
