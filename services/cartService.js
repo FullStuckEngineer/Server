@@ -122,6 +122,20 @@ const update = async (params) => {
                 throw ({ name: "ErrorNotFound", message: "Courier Not Found" })
             }
 
+            // Check if product in shopping_items exist and stock is enough
+            for (let i = 0; i < shopping_items.length; i++) {
+                const shopping_item = shopping_items[i];
+                const product = await prisma.product.findUnique({
+                    where: { id: shopping_item.product_id }
+                });
+                if (!product) {
+                    throw ({ name: "ErrorNotFound", message: "Product Not Found" })
+                }
+                if (product.stock < shopping_item.quantity) {
+                    throw ({ name: "ErrorBadRequest", message: "Stock is not enough" })
+                }
+            }
+
             // Get current shopping_items
             let currentShoppingItemsCart = await prisma.cart.findUnique({ 
                 where: { id: Number(id) },
