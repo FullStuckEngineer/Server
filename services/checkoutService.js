@@ -45,63 +45,7 @@ const create = async (params) => {
     // - filter
     // - Checkout Product?
     try {
-        const { user_id, body } = params
-
-        //get courier_id, total_cost, total_weight, shipping_cost from cart
-        // const cart = await prisma.cart.findUnique({
-        //     where: {
-        //         user_id: Number(user_id)
-        //     },
-        //     select: {
-        //         courier_id: true,
-        //         total_cost: true,
-        //         total_weight: true,
-        //         shiping_cost: true,
-        //         shopping_items: {
-        //             select: {
-        //                 product_id: true,
-        //                 quantity: true
-        //             }
-        //         }
-        //     },
-        // })
-        // set default courier_id to 1
-        // if (cart.courier_id === null) {
-        //     await prisma.cart.update({
-        //         where: {
-        //             user_id: Number(user_id)
-        //         },
-        //         data: {
-        //             courier_id: 1
-        //         }
-        //     })
-        // }
-
-        // check stock product
-        // cart.shopping_items.forEach(async (item) => {
-        //     try {
-        //         const product = await prisma.product.findUnique({
-        //             where: {
-        //                 id: item.product_id
-        //             }
-        //         })
-        //         if (product.stock < item.quantity) {
-        //             throw ({ name: "ErrorNotEnoughStock", message: "Not enough stock" })
-        //         }
-
-        //         // update stock
-        //         await prisma.product.update({
-        //             where: {
-        //                 id: item.product_id
-        //             },
-        //             data: {
-        //                 stock: product.stock - item.quantity
-        //             }
-        //         })
-        //     } catch (error) {
-        //         throw error
-        //     }
-        // })
+        const { body } = params
 
         //check address
         const address = await prisma.address.findUnique({
@@ -121,21 +65,17 @@ const create = async (params) => {
 
         if(!courier) { throw ({ name: "ErrorNotFound", message: "Courier Not Found" }) }
 
-       
+
+       //use loop for check checkout_product
+       //product_id
+       //quantity
+       //price
+       //reduce stock
+       //update checkout
 
         const createCheckout = await prisma.checkout.create({
-            data: body
-                //address?
-                //payment_method?
-                //bank?
-                //payment_receipt?
-                //STATUS: default waiting payment
-                //invoice (auto generate)
-                //midtrans_data?
-                //shipping_note?
-                //shipping_cost?
-                //shipping_method?
-                //checkout_products?
+            data: params
+            
         });
         console.log(cart)
         return createCheckout

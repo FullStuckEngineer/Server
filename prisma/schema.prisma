@@ -78,7 +78,7 @@ model Product {
   id                Int               @id @default(autoincrement())
   name              String
   photo             String?
-  description       Bytes
+  description       String?           @db.Text
   price             Int
   weight            Int
   category_id       Int
@@ -111,6 +111,7 @@ model Cart {
   address_id      Int?
   address         Address?       @relation(fields: [address_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
   total_cost      Int?
+  net_price       Int?
   courier_id      Int?
   courier         Courier?       @relation(fields: [courier_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
   shipping_method String?
@@ -143,7 +144,7 @@ model Checkout {
   payment_method    String?
   bank              String?
   payment_receipt   String?
-  status            Status
+  status            Status            @default(waiting_payment)
   invoice           String?
   shipping_method   String
   midtrans_data     Json?
@@ -151,6 +152,7 @@ model Checkout {
   shipping_note     String?
   total_cost        Int
   shipping_cost     Int
+  net_price         Int
   checkout_products CheckoutProduct[]
   created_at        DateTime          @default(now())
   update_at         DateTime          @default(now()) @updatedAt
