@@ -59,8 +59,6 @@ ADMIN
      //     const quantity = currentItem.quantity
      //     totalPrice += price * quantity
      // }
-360 270 
-600
 
 
 Github 
@@ -82,3 +80,32 @@ Cara Push ke branch Lokal
 bug user
 - saat update harusnya password di bcrypt lagi
 - harusnya di list detail hanya bisa lihat detail user yg sedang login
+
+    //relasi user, address, courier
+    //user dapat memilih payment method
+    //user dapat memilih bank untuk pembayaran
+    //user akan mendapatkan payment receipt
+    //user akan mendapa status pembayaran, pengiriman?
+    //user akan mendapat invoice
+    //user akan mendapat shipping method
+    //user akan mendapat midtrans data(diperlihatkan)
+    //user akan mendapatkan data total weight, total cost
+    //user akan mendapatkan shipping note
+    //user akan mendapatkan shipping cost
+    //user akan mendapatkan checkout products
+
+Checkout itu fiturnya:
+
+- pengecekan courier
+- pengecekan ongkir
+- pengecekan address
+- pengecekan stok
+- pengurangan stok
+- pembayaran
+- payment gateway
+- update status
+- validasi field
+- pagination
+- filter
+
+Seeding RajaOngkir City: npx prisma db seed
