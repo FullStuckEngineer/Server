@@ -103,19 +103,21 @@ const update = async (params) => {
                 shopping_items = paramShoppingItem;
             }
             
-            // Check if user_id and logged_user_id are the same
-            let user_id_cart = await prisma.cart.findUnique({
-                where: { id: Number(id) },
-                select: { user_id: true }
-            });
-            user_id_cart = user_id_cart.user_id;
+            if (logged_user_id !== undefined) {
+                // Check if user_id and logged_user_id are the same
+                let user_id_cart = await prisma.cart.findUnique({
+                    where: { id: Number(id) },
+                    select: { user_id: true }
+                });
+                user_id_cart = user_id_cart.user_id;
 
-            if (logged_user_id !== user_id_cart) {
-                throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
+                if (logged_user_id !== user_id_cart) {
+                    throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
+                }
             }
 
             // Check if user_id from address_id and logged_user_id are the same
-            if (paramAddressId !== null) {
+            if (paramAddressId !== undefined) {
                 let address_id_cart = await prisma.address.findUnique({
                     where: { id: Number(address_id) },
                     select: { user_id: true }
@@ -129,7 +131,7 @@ const update = async (params) => {
             }
 
             // Check if courier_id exist
-            if (paramCourierId !== null) {
+            if (paramCourierId !== undefined) {                
                 const courier = await prisma.courier.findUnique({
                     where: { id: Number(courier_id) }
                 });
