@@ -14,7 +14,7 @@ const findOne = async (req, res, next) => {}
 
 const create = async (req, res, next) => {
     try {
-        const obj = { user_id: req.loggedUser.id, ...req.body }
+        const obj = { user_id: req.loggedUser.id, body: req.body }
         const createCheckout = await checkoutService.create(obj)
         res.status(200).json(createCheckout)
     } catch (error) {
@@ -24,4 +24,6 @@ const create = async (req, res, next) => {
 
 const update = async (req, res, next) => {} 
 
-module.exports = { findAll, findOne, create, update }
+const pay = async (req, res, next) => {}
+
+module.exports = { findAll, findOne, create, update, pay }

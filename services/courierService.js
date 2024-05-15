@@ -70,4 +70,5 @@ const destroy = async (params) => {
   });
   return sql;
 };
+
 module.exports = { findAll, findOne, create, update, destroy };
