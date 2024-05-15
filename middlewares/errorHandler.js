@@ -1,14 +1,14 @@
 const errorHandler = (err, req, res, next) => {
     let errorMessage = "";
-
+    console.log(err)
     switch (err.name) {
         case "Unauthorized":
             errorMessage = "Unauthorized";
-            res.status(404).json({ message: errorMessage });
+            res.status(404).json({ name: err.name, message: errorMessage });
             break;
         case "ErrorNotFound":
             errorMessage = "Error Not Found";
-            res.status(404).json({ message: errorMessage });
+            res.status(404).json({ name: err.name, message: errorMessage });
             break;
         case "InvalidEmailOrPassword":
             errorMessage = "Invalid Email or Password";
