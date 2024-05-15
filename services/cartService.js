@@ -4,63 +4,18 @@ require("dotenv").config();
 
 const findOne = async (params) => {
     try {
-        const id = Number(params.id)
+        console.log("PARAMS", params);
+        const id = Number(params.id);
+        const logged_user_id = params.logged_user_id;
 
-        const getById = await prisma.cart.findUnique({
-            where: {
-                user_id: id
-            },
-            include: {
-                shopping_items: {
-                    include: {
-                        product: true
-                    }
-                }
-            }
-        })
-        if (!getById) {
-            throw ({
-                name: "ErrorNotFound",
-                message: "Cart Not Found"
-            })
+        // Check if user_id in cart_id and logged_user_id are the same
+        const cart = await prisma.cart.findUnique({
+            where: { id: id }
+        });
+        
+        if (logged_user_id !== cart.user_id) {
+            throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
         }
-
-
-        let totalPrice = 0
-        let totalWeight = 0
-
-        for (const item of getById.shopping_items) {
-            const product = await prisma.product.findUnique({
-                where: {
-                    id: item.product_id
-                }
-            })
-
-            await prisma.shoppingItem.update({
-                where: {
-                    id: item.id
-                }, data: {
-                    price: product.price
-                }
-            })
-
-            totalPrice += product.price * item.quantity
-            totalWeight += product.weight * item.quantity
-        }
-
-        const cart = await prisma.cart.update({
-            where: { id: getById.id },
-            data: {
-                total_cost: totalPrice, total_weight: totalWeight
-            },
-            include: {
-                shopping_items: {
-                    include: {
-                        product: { select: { weight: true } }
-                    }
-                }
-            }
-        })
 
         return cart
     } catch (error) {

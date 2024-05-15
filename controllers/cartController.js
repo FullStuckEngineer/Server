@@ -2,8 +2,10 @@ const cartService = require('../services/cartService')
 
 const findOne = async (req, res, next) => {
   try {
-    const cart = await cartService.findOne(req.loggedUser)
-    res.status(200).json(cart)
+    const params = { id: req.params.id, logged_user_id: req.loggedUser.id};
+    const cart = await cartService.findOne(params);
+
+    res.status(200).json({ message: "Cart Found", data: cart });
   } catch (error) {
     next(error)
   }
