@@ -85,6 +85,7 @@ const update = async (params) => {
             let total_weight = 0;
             let shipping_cost = 0;
             let total_cost = 0;
+            let net_price = 0;
             let address_id = currentCart.address_id;
             let courier_id = currentCart.courier_id;
             let shipping_method = currentCart.shipping_method;
@@ -186,8 +187,8 @@ const update = async (params) => {
                                 cart_id: Number(id),
                                 product_id: shopping_item.product_id,
                                 quantity: shopping_item.quantity,
-                                price: product.price * shopping_item.quantity,
-                                weight: product.weight * shopping_item.quantity
+                                price: product.price,
+                                weight: product.weight,
                             }
                         });
                         
@@ -229,8 +230,8 @@ const update = async (params) => {
                             where: { id: shopping_item_id },
                             data: { 
                                 quantity: shopping_item.quantity,
-                                price: product.price * shopping_item.quantity,
-                                weight: product.weight * shopping_item.quantity
+                                price: product.price,
+                                weight: product.weight,
                             }
                         })
                     } else {
@@ -262,9 +263,12 @@ const update = async (params) => {
             updatedShoppingItems = updatedShoppingItems.shopping_items;        
 
             if (updatedShoppingItems.length > 0) {
-                // Calculate total weight
-                const shoppingItemsWeight = updatedShoppingItems.map(item => item.weight);
-                total_weight = shoppingItemsWeight.reduce((sumWeight, weight) => sumWeight + weight, 0);
+                // Calculate total weight = weight * quantity of shopping_items
+                total_weight = updatedShoppingItems.reduce((sumWeight, item) => sumWeight + (item.weight * item.quantity), 0);
+
+                // Calculate total cost = total (price * quantity) of shopping_items
+                total_cost = updatedShoppingItems.reduce((sumPrice, item) => sumPrice + (item.price * item.quantity), 0);
+
                 // Get destination city_id
                 let city_id = await prisma.address.findUnique({
                     where: { id: Number(address_id) },
@@ -277,15 +281,16 @@ const update = async (params) => {
                     where: { id: Number(courier_id) },
                     select: { name: true }
                 });
-                courier_name = courier_name.name            
+                courier_name = courier_name.name      
+                      
                 // Get Shipping Cost
-                const shipping_cost_params = {city_id, total_weight, courier_name}
+                const shipping_cost_params = {city_id, total_weight, courier_name, shipping_method}
                 if (total_weight > 0) {
                     shipping_cost = await getShippingCost(shipping_cost_params);
                 }
 
-                // Get Total Cost = total (price * quantity) of shopping_items + shipping_cost
-                total_cost = updatedShoppingItems.reduce((sumPrice, item) => sumPrice + (item.price), 0) + shipping_cost;
+                // Calculate net price = total cost + shipping cost
+                net_price = total_cost + shipping_cost;
             } else {
                 address_id = null;
                 courier_id = null;
@@ -293,6 +298,7 @@ const update = async (params) => {
                 shipping_cost = null;
                 total_weight = null;
                 total_cost = null;
+                net_price = null;
             }
 
             // Find Created At
@@ -309,6 +315,7 @@ const update = async (params) => {
                 shiping_cost: shipping_cost,
                 total_weight: total_weight,
                 total_cost: total_cost,
+                net_price: net_price,
                 update_at: new Date(),
                 created_at: created_at
             };            
@@ -389,7 +396,7 @@ const destroy = async (params) => {
 
 const getShippingCost = async (params) => {
     try {
-        const {city_id, total_weight, courier_name} = params;
+        const {city_id, total_weight, courier_name, shipping_method} = params;
 
         const response = await axios.post(
             'https://api.rajaongkir.com/starter/cost',
@@ -407,7 +414,19 @@ const getShippingCost = async (params) => {
             }
         );
 
-        return response.data.rajaongkir.results[0].costs[0].cost[0].value;
+        // Get all shipping method
+        const courier_shipping_methods = response.data.rajaongkir.results[0].costs.map(cost => cost.service);
+        console.log('Courier Shipping Methods:', courier_shipping_methods);
+        console.log('Shipping Method:', shipping_method);
+
+        // Check if shipping method is available
+        if (!courier_shipping_methods.includes(shipping_method)) {
+            throw ({ name: "ErrorNotFound", message: "Shipping Method Not Found" })
+        } else {
+            // Get shipping cost based on shipping method
+            const shipping_cost = response.data.rajaongkir.results[0].costs.find(cost => cost.service == shipping_method);
+            return shipping_cost.cost[0].value;
+        }
     } catch (error) {
         console.error('Error fetching shipping cost:', error.message);
         throw new Error('Failed to fetch shipping cost');
