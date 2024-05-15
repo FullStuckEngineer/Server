@@ -294,60 +294,49 @@ const update = async (params) => {
 
 const destroy = async (params) => {
     try {
-        // buat operasi pengurangan harga untuk setiap shopping_item dengan total_cost untuk setiap penghapusan shopping_item
-        // buat operasi pengurangan weight untuk setiap shopping_item dengan total_weight untuk setiap penghapusan shopping_item
-        const { id, idShoppingItem } = params
-
-        const shoppingItems = await prisma.shoppingItem.findUnique({
+        const { user_id, idShoppingItem } = params;
+        
+        // Get cart by user_id
+        const cart = await prisma.cart.findUnique({
             where: {
-                id: Number(idShoppingItem)
-            }, include: {
-                cart: {
-                    select: {
-                        user_id: true, total_cost: true, total_weight: true
-                    }
-                }, product: true
+                user_id: Number(user_id)
             }
-        })
+        });
 
-        if (!shoppingItems) {
-            throw ({
-                name: "ErrorNotFound",
-                message: "Shopping Item Not Found"
-            })
+        if (!cart) {
+            throw ({ name: "ErrorNotFound", message: "Cart Not Found" });
         }
 
-        if (shoppingItems.cart.user_id !== Number(id)) {
-            throw { name: "NotPermitted" }
+        // Get cart's shopping item
+        const cartShoppingItems = await prisma.shoppingItem.findMany({
+            where: {
+                cart_id: cart.id
+            }
+        });
+
+        // Check if idShoppingItem is in cart's shopping item
+        const shoppingItem = cartShoppingItems.find(item => item.id === Number(idShoppingItem));
+        if (!shoppingItem) {
+            throw ({ name: "ErrorNotFound", message: "Shopping Item Not Found" });
         }
 
-        const totalPrice = shoppingItems.price * shoppingItems.quantity
-        const fixPrice = shoppingItems.cart.total_cost - totalPrice
-        const totalWeight = shoppingItems.product.weight * shoppingItems.quantity
-        const fixWeight = shoppingItems.cart.total_weight - totalWeight
-        console.log(fixPrice)
-        console.log(fixWeight)
+        // Set shopping item quantity to 0
+        shoppingItem.quantity = 0;
 
-        await prisma.cart.update({
-            where: {
-                user_id: Number(id)
-            }, data: {
-                total_cost: fixPrice,
-                total_weight: fixWeight
-            }
-        })
+        // Prepare the update parameters
+        const updateParams = {
+            id: cart.id,
+            shopping_items: [shoppingItem],
+        };
 
-        const delShoppingItem = await prisma.shoppingItem.delete({
-            where: {
-                id: Number(idShoppingItem)
-            }
-        })
+        // Call the update function
+        const updatedCart = await update(updateParams);
 
-        return delShoppingItem
+        return updatedCart;
     } catch (error) {
-        throw error
+        throw error;
     }
-}
+};
 
 const getShippingCost = async (params) => {
     try {
