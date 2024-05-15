@@ -15,7 +15,11 @@ const findOne = async (params) => {
     try {
         const getById = await prisma.address.findUnique({
             where: { user_id, id: Number(id) }
-        })
+        })     
+        //check if user didnt input id 
+        if (id === undefined) {
+            throw ({ name: "PleaseInputId" })
+        }
         if (!getById) {
             throw ({ name: "ErrorNotFound", message: "Address Not Found" })
         } else {
@@ -50,6 +54,10 @@ const update = async (params) => {
         const address = await prisma.address.findUnique({
             where: { id: Number(id) }
         })
+        //check if user didnt input id address
+        if (id === undefined) {
+            throw ({ name: "PleaseInputId" })
+        }
 
         if (!address || address.user_id !== user_id) {
             throw { name: "ErrorNotFound" }
