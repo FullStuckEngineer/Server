@@ -8,12 +8,12 @@ const findOne = async (params) => {
       },
     });
     if (!user) {
-      throw new ErrorNotFound("User not found");
+      throw { name: "UserNotFound" }
     }
 
     return user;
   } catch (error) {
-    throw new Error(`Error finding user: ${error.message}`);
+    throw error
   }
 };
 
@@ -31,9 +31,12 @@ const update = async (params) => {
       data: body,
     });
 
+    if (!updatedUser) {
+      throw { name: "FailedUpdateUser" };
+    }
     return updatedUser;
   } catch (error) {
-    throw new Error(`Error updating user: ${error.message}`);
+    throw error
   }
 };
 
@@ -44,14 +47,18 @@ const destroy = async (params) => {
       where: { user_id, id: Number(id) },
     });
     if (!findId) {
-      throw { name: "ErrorNotFound" };
+      throw { name: "UserNotFound" };
     }
     const deleteUser = await prisma.user.delete({
       where: { user_id, id: Number(id) },
     });
+    if (!deleteUser) {
+      throw { name: "FailedToDeleteUser" };
+    }
+
     return deleteUser;
   } catch (error) {
-    throw new Error(`Error deleting user: ${error.message}`);
+    throw error
   }
 };
 

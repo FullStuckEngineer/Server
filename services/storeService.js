@@ -16,7 +16,7 @@ const findOne = async (params) => {
             where: { id: Number(id) }
         })
         if (!getOne) {
-            throw ({ name: "ErrorNotFound", message: "Store Not Found" })
+            throw ({ name: "StoreNotFound" })
         } else {
             return getOne
         }
@@ -55,7 +55,7 @@ const update = async (params) => {
         })
 
         if (!findStore) {
-            throw { name: "ErrorNotFound" }
+            throw { name: "StoreNotFound" }
         }
 
         const updateStore = await prisma.store.update({
@@ -79,7 +79,7 @@ const destroy = async (params) => {
         })
 
         if (!findStore) {
-            throw { name: "ErrorNotFound" }
+            throw { name: "StoreNotFound" }
         }
         
         const deleteStore = await prisma.store.delete({
@@ -87,6 +87,10 @@ const destroy = async (params) => {
                 id: Number(id)
             }
         })
+
+        if (!deleteStore) {
+            throw { name: "FailedToDeleteStore" }
+        }
         return deleteStore
     } catch (error) {
         throw error

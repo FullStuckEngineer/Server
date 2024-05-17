@@ -19,7 +19,7 @@ const findAll = async (params) => {
 
     if (!products) throw { name: "Products Not Found" };
     return products;
-} 
+}
 
 const findOne = async (params) => {
     const { slug, role } = params;
@@ -34,7 +34,7 @@ const findOne = async (params) => {
     });
 
     if (!foundProduct) {
-        throw { name: "Product Not Found" };
+        throw { name: "ProductNotFound" };
     }
 
     return foundProduct;
@@ -55,7 +55,7 @@ const create = async (params) => {
     if (stock < 0 || price < 0 || weight < 0) {
         throw { name: "Stock, price, and weight cannot be negative" };
     }
-    
+
     const slug = generateSlug(name);
 
     const category = await prisma.category.findFirst({
@@ -66,17 +66,17 @@ const create = async (params) => {
     });
 
     if (!category) {
-        throw { name: "Category Not Found or Inactive" };
+        throw { name: "CategoriesNotFound" };
     }
 
     const product = await prisma.product.create({
         data: {
             name,
             description: description_encoded,
-            price : parseInt(price),
-            weight : parseFloat(weight),
-            category_id : parseInt(category_id),
-            stock : parseInt(stock),
+            price: parseInt(price),
+            weight: parseFloat(weight),
+            category_id: parseInt(category_id),
+            stock: parseInt(stock),
             sku,
             slug,
             keywords,
@@ -84,10 +84,10 @@ const create = async (params) => {
             update_at: new Date()
         }
     })
-    if (!product) throw { name: "Failed to Create Product" };
+    if (!product) throw { name: "FailedToCreateProduct" };
 
     return product;
-} 
+}
 
 const uploadImage = async (params) => {
     const { productId, filePath } = params;
@@ -101,18 +101,18 @@ const uploadImage = async (params) => {
             update_at: new Date()
         }
     });
-    if (!product) throw { name: "Failed to Upload Image" };
+    if (!product) throw { name: "FailedToCreateProductImage" };
 
     return product;
-} 
+}
 
 const update = async (params) => {
-    try{
+    try {
         await prisma.$transaction(async (prisma) => {
             const { id, name, description, price, weight, category_id, stock, sku, keywords, shopping_items, checkout_products } = params;
 
             if ((stock && stock < 0) || (price && price < 0) || (weight && weight < 0)) {
-                throw { name: "Stock, price, and weight cannot be negative" };
+                throw { name: "FieldCannotBeNegative" };
             }
 
             if (category_id) {
@@ -135,14 +135,14 @@ const update = async (params) => {
                     if (shopping_item.quantity > stock) {
                         // Set Shopping Item Quantity to 0
                         shopping_item.quantity = 0;
-                        
+
                         // Destroy Shopping Item
                         const destroyedShoppingItem = await prisma.shoppingItem.delete({
                             where: {
                                 id: shopping_item.id
                             }
                         });
-                        if (!destroyedShoppingItem) throw { name: "Failed to Update Product" };
+                        if (!destroyedShoppingItem) throw { name: "FailedToUpdateProduct" };
                     }
                 }
             }
@@ -172,17 +172,17 @@ const update = async (params) => {
                 },
                 data: dataToUpdate
             });
-            if (!product) throw { name: "Failed to Update Product" };
+            if (!product) throw { name: "FailedToUpdateProduct" };
 
             return product;
         });
     } catch (error) {
-        throw { name: "Failed to Update Product" };
+        throw { name: "FailedToUpdateProduct" };
     }
 }
 
 const destroy = async (params) => {
-    try{
+    try {
         await prisma.$transaction(async (prisma) => {
             const productId = parseInt(params.id);
 
@@ -192,9 +192,9 @@ const destroy = async (params) => {
                     product_id: productId
                 }
             });
-        
-            if (!shopping_items) throw { name: "Failed to Delete Shopping Items" };
-        
+
+            if (!shopping_items) throw { name: "FailedToDeleteShoppingItems" };
+
             const product = await prisma.product.update({
                 where: {
                     id: parseInt(productId)
@@ -204,12 +204,12 @@ const destroy = async (params) => {
                     status: "Inactive"
                 }
             })
-            if (!product) throw { name: "Failed to Delete Image" };
-        
+            if (!product) throw { name: "FailedToDeleteImage" };
+
             return product;
         });
     } catch (error) {
-        throw { name: "Failed to Delete Product" };
+        throw { name: "FailedToDeleteProduct" };
     }
 }
 

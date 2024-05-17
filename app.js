@@ -5,7 +5,7 @@ const cors = require('cors')
 const morgan = require('morgan')
 const router = require('./routes')
 const errorHandler = require('./middlewares/errorHandler')
-const port = process.env.PORT || 3000
+const port = process.env.PORT || 8000
 
 app.use(cors())
 app.use(morgan("dev"))

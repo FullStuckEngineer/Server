@@ -19,7 +19,7 @@ const findAll = async (params) => {
     });
 
     if (!categories) {
-        throw { name: "Categories Not Found" };
+        throw { name: "CategoriesNotFound" };
     }
 
     return categories;
@@ -29,17 +29,17 @@ const findOne = async (params) => {
     const { id, role } = params;
     const categoryId = parseInt(id);
 
-    let where = {id: categoryId};
+    let where = { id: categoryId };
     if (role === 'User') {
         where.status = 'Active';
     }
-    
+
     const category = await prisma.category.findUnique({
         where
     });
-    if (!category) throw { name: "Category Not Found" };
+    if (!category) throw { name: "CategoriesNotFound" };
     return category;
-} 
+}
 
 const create = async (params) => {
     const { name } = params;
@@ -50,9 +50,9 @@ const create = async (params) => {
             update_at: new Date()
         }
     });
-    if (!category) throw { name: "Failed to Create Category" };
+    if (!category) throw { name: "CreatedCategoryFailed" };
     return category;
-} 
+}
 
 const update = async (params) => {
     const { id, name } = params;
@@ -65,9 +65,9 @@ const update = async (params) => {
             update_at: new Date()
         }
     })
-    if (!category) throw { name: "Failed to Update Category" };
+    if (!category) throw { name: "UpdateCategoryFailed" };
     return category;
-} 
+}
 
 const destroy = async (params) => {
     const categoryId = parseInt(params.id);
@@ -95,8 +95,8 @@ const destroy = async (params) => {
             status: "Inactive"
         }
     })
-    if (!category) throw { name: "Failed to Soft Delete Category" };
+    if (!category) throw { name: "DeleteCategoryFailed" };
     return category;
-} 
+}
 
-module.exports = { findAll, findOne, create, update, destroy}
+module.exports = { findAll, findOne, create, update, destroy }

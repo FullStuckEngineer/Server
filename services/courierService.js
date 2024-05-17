@@ -10,12 +10,12 @@ const findOne = async (params) => {
   const { id } = params;
 
   const sql = await prisma.courier.findUnique
-  ({
-    
-    where: {
-      id: +id,
-    },
-  });
+    ({
+
+      where: {
+        id: +id,
+      },
+    });
   if (sql === null) {
     throw { name: "InvalidCourier" };
   }
@@ -26,7 +26,6 @@ const findOne = async (params) => {
 const create = async (params) => {
 
   const sql = await prisma.courier.create({
-    
     data: params
   });
   return sql
@@ -35,29 +34,29 @@ const create = async (params) => {
 const update = async (params) => {
 
   try {
-  const {id , name} = params
-  const sql = await prisma.courier.upsert
-  
-     ({
-    where: {
-      id: +id
-    },
+    const { id, name } = params
+    const sql = await prisma.courier.upsert
 
-    update: {
-      name: name,
-    },
+      ({
+        where: {
+          id: +id
+        },
 
-    create: {
-      id: +id,
-      name: name
-    }
-  })
-  
-  return sql;
+        update: {
+          name: name,
+        },
+
+        create: {
+          id: +id,
+          name: name
+        }
+      })
+
+    return sql;
   } catch (error) {
     throw (error)
   }
- 
+
 };
 
 const destroy = async (params) => {
@@ -68,6 +67,11 @@ const destroy = async (params) => {
       id: +id,
     },
   });
+
+  //check if courier id exist
+  if (!sql) {
+    throw { name: "InvalidCourier" };
+  }
   return sql;
 };
 
