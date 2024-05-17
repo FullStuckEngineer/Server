@@ -19,7 +19,7 @@ const findAll = async (params) => {
             where.user = user
         }
 
-        const offset = (page - 1) * perPage;
+        const offset = (currentPage - 1) * perPage;
         const limit = perPage;
 
         if (role === "admin") {
@@ -33,7 +33,7 @@ const findAll = async (params) => {
             if (!checkout) {
                 throw ({ name: "ErrorNotFound", message: "Checkout List Not Found" })
             };
-
+            return checkout;
         } else if (role === "user") {
             // Show only user's checkout
             where.user_id = loggedUser
@@ -47,6 +47,7 @@ const findAll = async (params) => {
             if (!checkout) {
                 throw ({ name: "ErrorNotFound", message: "Checkout List Not Found" })
             };
+            return checkout;
         } else {
             throw ({ name: "ErrorNotFound", message: "Role Not Found" })
         }
@@ -58,23 +59,24 @@ const findAll = async (params) => {
 const findOne = async (params) => { 
     try {
         const { id, role, loggedUser } = params;
+        console.log(params);
 
         if (role === "admin") {
             const checkout = await prisma.checkout.findUnique({
                 where: {
-                    id: Number(id)
+                    id: parseInt(id)
                 }
             });
 
             if (!checkout) {
                 throw ({ name: "ErrorNotFound", message: "Checkout Not Found" })
             };
-
+            return checkout;
         } else if (role === "user") {
             // Check if the checkout belongs to the user
             const checkout = await prisma.checkout.findUnique({
                 where: {
-                    id: Number(id)
+                    id: parseInt(id)
                 }
             });
 
@@ -85,6 +87,8 @@ const findOne = async (params) => {
             if (!checkout) {
                 throw ({ name: "ErrorNotFound", message: "Checkout Not Found" })
             };
+
+            return checkout;
         } else {
             throw ({ name: "ErrorNotFound", message: "Role Not Found" })
         }
@@ -108,8 +112,8 @@ const create = async (params) => {
 
     try {
         await prisma.$transaction(async (prisma) => {
-            const { user_id, body } = params
-
+            const { user_id, body } = params;
+                    
             //check address
             const address = await prisma.address.findUnique({
                 where: {
@@ -128,7 +132,15 @@ const create = async (params) => {
 
             if(!courier) { throw ({ name: "ErrorNotFound", message: "Courier Not Found" }) };
 
-            const { address_id, courier_id, payment_method, bank, payment_receipt, shipping_method, shipping_note, shipping_cost, total_cost, checkout_products_attributes } = body;
+            const { address_id, courier_id, payment_method, bank, payment_receipt, shipping_method, shipping_note, shipping_cost, total_cost, checkout_product_attributes } = body;
+
+            // Calculate total cost
+            console.log(checkout_product_attributes);
+            let total_cost_calculated = 0;
+            for (let i = 0; i < checkout_product_attributes.length; i++) {
+                const currentItem = checkout_product_attributes[i];
+                total_cost_calculated += currentItem.quantity * currentItem.price;
+            };
 
             const createCheckout = await prisma.checkout.create({
                 data: {
@@ -141,7 +153,8 @@ const create = async (params) => {
                     shipping_method,
                     shipping_note,
                     shipping_cost,
-                    total_cost
+                    total_cost: total_cost_calculated,
+                    net_price: 0
                 } 
             });
 
@@ -155,8 +168,8 @@ const create = async (params) => {
             //update checkout
 
             let total_weight = 0;
-            for (let i = 0; i < checkout_products_attributes.length; i++) {
-                const currentItem = checkout_products_attributes[i];
+            for (let i = 0; i < checkout_product_attributes.length; i++) {
+                const currentItem = checkout_product_attributes[i];
 
                 // Check if product exists
                 const product = await prisma.product.findUnique({
@@ -218,11 +231,17 @@ const create = async (params) => {
 const update = async (params) => { 
     try{
         const { id, status, role, loggedUser } = params;
+        // Check if status is valid
+        if (status !== "waiting_payment" && status !== "payment_verified" && status !== "processing" && status !== "shipping" && status !== "delivered" && status !== "completed" && status !== "cancelled") {
+            throw ({ name: "InvalidStatus", message: "Invalid Status" })
+        }
 
         if (role === "admin") {
+            console.log(role);
+
             const updateCheckout = await prisma.checkout.update({
                 where: {
-                    id: Number(id)
+                    id: parseInt(id)
                 },
                 data: {
                     status: status
@@ -234,19 +253,25 @@ const update = async (params) => {
             };
 
         } else if (role === "user") {
+            console.log(role);
+
             const checkout = await prisma.checkout.findUnique({
                 where: {
-                    id: Number(id)
+                    id: parseInt(id)
                 }
             });
 
-            if (checkout.user_id !== loggedUser) {
+            console.log(checkout);
+            console.log(loggedUser);
+            console.log(checkout.user_id);
+            console.log(checkout.user_id != loggedUser);
+            if (checkout.user_id != loggedUser) {
                 throw ({ name: "ErrorNotFound", message: "Unauthorized" })
             }
 
             const updateCheckout = await prisma.checkout.update({
                 where: {
-                    id: Number(id)
+                    id: parseInt(id)
                 },
                 data: {
                     status: status

@@ -50,6 +50,10 @@ const errorHandler = (err, req, res, next) => {
             errorMessage = "Invalid ID";
             res.status(404).json({ message: errorMessage });
             break;
+        case "InvalidStatus":
+            errorMessage = "Invalid Status";
+            res.status(404).json({ message: errorMessage });
+            break;
         default:
             errorMessage = "Internal Server Error";
             console.log(err)

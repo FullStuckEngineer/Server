@@ -17,6 +17,7 @@ const findOne = async (req, res, next) => {
         const params = {id: req.params.id, loggedUser: req.loggedUser.id, role: "user"};
 
         const findOne = await checkoutService.findOne(params);
+        console.log(findOne);
         res.status(200).json({message: "Success Get A Checkout", data: findOne})
         } catch (error) {
         next(error);
@@ -27,7 +28,7 @@ const create = async (req, res, next) => {
     try {
         const obj = { user_id: req.loggedUser.id, body: req.body }
         const createCheckout = await checkoutService.create(obj)
-        res.status(200).json(createCheckout)
+        res.status(200).json({message: "Success Create Checkout", data: createCheckout})
     } catch (error) {
         next (error)
     }
