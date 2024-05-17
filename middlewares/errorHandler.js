@@ -140,7 +140,6 @@ const errorHandler = (err, req, res, next) => {
             errorMessage = "Shopping Item Not Found";
             res.status(404).json({ message: errorMessage });
             break;
-        // Default Error    
         case "InvalidStatus":
             errorMessage = "Invalid Status";
             res.status(404).json({ message: errorMessage });
@@ -185,6 +184,7 @@ const errorHandler = (err, req, res, next) => {
             errorMessage = "Failed to Upload";
             res.status(404).json({ message: errorMessage });
             break;
+        // Default Error    
         default:
             errorMessage = "Internal Server Error";
             console.log(err)
