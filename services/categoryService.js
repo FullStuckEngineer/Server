@@ -2,101 +2,124 @@ const prisma = require("../lib/prisma");
 const productService = require("./productService");
 
 const findAll = async (params) => {
-    const { page = 1, perPage = 10, role = 'User' } = params;
+    try{
+        const { page = 1, perPage = 10, role = 'User' } = params;
 
-    const offset = (page - 1) * perPage;
-    const limit = perPage;
-
-    let where = {};
-    if (role === 'User') {
-        where.status = 'Active';
+        const offset = (page - 1) * perPage;
+        const limit = perPage;
+    
+        let where = {};
+        if (role === 'User') {
+            where.status = 'Active';
+        }
+    
+        const categories = await prisma.category.findMany({
+            where,
+            skip: offset,
+            take: limit,
+        });
+    
+        if (!categories) {
+            throw { name: "ErrorNotFound", message: "Categories Not Found"};
+        }
+    
+        return categories;    
+    } catch (error) {
+        throw ({ name: "ErrorFetch", message: "Error Fetching Categories" })
     }
-
-    const categories = await prisma.category.findMany({
-        where,
-        skip: offset,
-        take: limit,
-    });
-
-    if (!categories) {
-        throw { name: "Categories Not Found" };
-    }
-
-    return categories;
 }
 
 const findOne = async (params) => {
-    const { id, role } = params;
-    const categoryId = parseInt(id);
-
-    let where = {id: categoryId};
-    if (role === 'User') {
-        where.status = 'Active';
-    }
+    try {
+        const { id, role } = params;
+        const categoryId = parseInt(id);
     
-    const category = await prisma.category.findUnique({
-        where
-    });
-    if (!category) throw { name: "Category Not Found" };
-    return category;
+        let where = {id: categoryId};
+        if (role === 'User') {
+            where.status = 'Active';
+        }
+        
+        const category = await prisma.category.findUnique({
+            where
+        });
+        if (!category) {
+            throw { name: "ErrorNotFound", message: "Category Not Found"};
+        }
+    
+        return category;    
+    } catch (error) {
+        throw ({ name: "ErrorFetch", message: "Error Fetching Category" })
+    }
 } 
 
 const create = async (params) => {
-    const { name } = params;
-    const category = await prisma.category.create({
-        data: {
-            name,
-            created_at: new Date(),
-            update_at: new Date()
-        }
-    });
-    if (!category) throw { name: "Failed to Create Category" };
-    return category;
+    try{
+        const { name } = params;
+        const category = await prisma.category.create({
+            data: {
+                name,
+                created_at: new Date(),
+                update_at: new Date()
+            }
+        });
+        if (!category) throw { name: "ErrorCreate", message: "Failed to Create Category"};
+        return category;    
+    } catch (error) {
+        throw ({ name: "ErrorCreate", message: "Failed to Create Category" })
+    }
 } 
 
 const update = async (params) => {
-    const { id, name } = params;
-    const category = await prisma.category.update({
-        where: {
-            id
-        },
-        data: {
-            name,
-            update_at: new Date()
-        }
-    })
-    if (!category) throw { name: "Failed to Update Category" };
-    return category;
+    try{
+        const { id, name } = params;
+        const category = await prisma.category.update({
+            where: {
+                id
+            },
+            data: {
+                name,
+                update_at: new Date()
+            }
+        })
+        if (!category) throw { name: "Failed to Update Category" };
+        return category;    
+    } catch (error) {
+        throw ({ name: "ErrorUpdate", message: "Failed to Update Category" })
+    }
 } 
 
 const destroy = async (params) => {
-    const categoryId = parseInt(params.id);
+    try{
+        const categoryId = parseInt(params.id);
 
-    // Soft delete product
-    const products = await prisma.product.findMany({
-        where: {
-            category_id: categoryId
+        // Soft delete product
+        const products = await prisma.product.findMany({
+            where: {
+                category_id: categoryId
+            }
+        });
+    
+        console.log(products);
+        if (products.length > 0) {
+            for (const product of products) {
+                await productService.destroy({ id: product.id });
+            }
         }
-    });
-
-    console.log(products);
-    if (products.length > 0) {
-        for (const product of products) {
-            await productService.destroy({ id: product.id });
-        }
+    
+        // Soft delete category
+        const category = await prisma.category.update({
+            where: {
+                id: categoryId
+            },
+            data: {
+                status: "Inactive"
+            }
+        })
+        if (!category) throw { name: "Failed to Soft Delete Category" };
+        return category;    
+    } catch (error) {
+        throw ({ name: "ErrorDelete", message: "Failed to Delete Category" })
     }
-
-    // Soft delete category
-    const category = await prisma.category.update({
-        where: {
-            id: categoryId
-        },
-        data: {
-            status: "Inactive"
-        }
-    })
-    if (!category) throw { name: "Failed to Soft Delete Category" };
-    return category;
 } 
 
 module.exports = { findAll, findOne, create, update, destroy}

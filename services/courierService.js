@@ -35,40 +35,44 @@ const create = async (params) => {
 const update = async (params) => {
 
   try {
-  const {id , name} = params
-  const sql = await prisma.courier.upsert
-  
-     ({
-    where: {
-      id: +id
-    },
+    const {id , name} = params
+    const sql = await prisma.courier.upsert
+    
+      ({
+      where: {
+        id: +id
+      },
 
-    update: {
-      name: name,
-    },
+      update: {
+        name: name,
+      },
 
-    create: {
-      id: +id,
-      name: name
-    }
-  })
-  
-  return sql;
+      create: {
+        id: +id,
+        name: name
+      }
+    })
+    
+    return sql;
   } catch (error) {
-    throw (error)
+    throw ({ name: "ErrorUpdate", message: "Failed to Update Courier" })
   }
  
 };
 
 const destroy = async (params) => {
-  const { id } = params;
+  try{
+    const { id } = params;
 
-  const sql = await prisma.courier.delete({
-    where: {
-      id: +id,
-    },
-  });
-  return sql;
+    const sql = await prisma.courier.delete({
+      where: {
+        id: +id,
+      },
+    });
+    return sql;
+  } catch (error) {
+    throw ({ name: "ErrorDelete", message: "Failed to Delete Courier" })
+  }
 };
 
 module.exports = { findAll, findOne, create, update, destroy };

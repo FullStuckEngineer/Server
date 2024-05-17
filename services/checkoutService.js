@@ -52,7 +52,7 @@ const findAll = async (params) => {
             throw ({ name: "ErrorNotFound", message: "Role Not Found" })
         }
     } catch (error) {
-        throw error
+        throw ({ name: "ErrorNotFound", message: "Checkouts Not Found" })
     }
 }
 
@@ -80,20 +80,20 @@ const findOne = async (params) => {
                 }
             });
 
-            if (checkout.user_id !== loggedUser) {
-                throw ({ name: "ErrorNotFound", message: "Unauthorized" })
-            }
-
             if (!checkout) {
                 throw ({ name: "ErrorNotFound", message: "Checkout Not Found" })
             };
 
+            if (checkout.user_id !== loggedUser) {
+                throw ({ name: "Unauthorized", message: "Unauthorized" })
+            }
+
             return checkout;
         } else {
-            throw ({ name: "ErrorNotFound", message: "Role Not Found" })
+            throw ({ name: "Unauthorized", message: "Role Not Found" })
         }
     } catch (error) {   
-        throw error
+        throw ({ name: "ErrorNotFound", message: "Checkout Not Found" })
     }
 }
 
@@ -158,7 +158,7 @@ const create = async (params) => {
                 } 
             });
 
-            if (!createCheckout) { throw ({ name: "ErrorNotFound", message: "Checkout Not Found" }) }
+            if (!createCheckout) { throw ({ name: "ErrorCreate", message: "Failed to Create Checkout" }) }
 
             //use loop for check checkout_product
             //product_id
@@ -180,10 +180,10 @@ const create = async (params) => {
                 if (!product) { throw ({ name: "ErrorNotFound", message: "Product Not Found" }) }
 
                 // Check if product stock is enough
-                if (product.stock < currentItem.quantity) { throw ({ name: "ErrorNotFound", message: "Product Stock Not Enough" }) }
+                if (product.stock < currentItem.quantity) { throw ({ name: "StockNotEnough", message: "Product Stock Not Enough" }) }
 
                 // Check if product price is correct
-                if (product.price !== currentItem.price) { throw ({ name: "ErrorNotFound", message: "Product Price Mismatch" }) }
+                if (product.price !== currentItem.price) { throw ({ name: "PriceMismatch", message: "Product Price Mismatch" }) }
 
                 // Create checkout_product
                 const checkout_product = await prisma.checkoutProduct.create({
@@ -195,7 +195,7 @@ const create = async (params) => {
                     }
                 });
 
-                if (!checkout_product) { throw ({ name: "ErrorNotFound", message: "Checkout Product Not Found" }) }
+                if (!checkout_product) { throw ({ name: "ErrorCreate", message: "Failed to Create Checkout Product" }) }
 
                 // Reduce product stock
                 await prisma.product.update({
@@ -224,7 +224,7 @@ const create = async (params) => {
             return checkout;
         });
     } catch (error) {
-        throw error;
+        throw ({ name: "ErrorCreate", message: "Failed to Create Checkout" })
     }
 }
 
@@ -249,7 +249,7 @@ const update = async (params) => {
             });
 
             if (!updateCheckout) {
-                throw ({ name: "ErrorNotFound", message: "Checkout Not Found" })
+                throw ({ name: "ErrorUpdate", message: "Failed to Update Checkout" })
             };
 
         } else if (role === "user") {
@@ -266,7 +266,7 @@ const update = async (params) => {
             console.log(checkout.user_id);
             console.log(checkout.user_id != loggedUser);
             if (checkout.user_id != loggedUser) {
-                throw ({ name: "ErrorNotFound", message: "Unauthorized" })
+                throw ({ name: "Unauthorized", message: "Unauthorized" })
             }
 
             const updateCheckout = await prisma.checkout.update({
@@ -279,13 +279,13 @@ const update = async (params) => {
             });
 
             if (!updateCheckout) {
-                throw ({ name: "ErrorNotFound", message: "Checkout Not Found" })
+                throw ({ name: "ErrorUpdate", message: "Failed to Update Checkout" })
             };
         } else {
-            throw ({ name: "ErrorNotFound", message: "Role Not Found" })
+            throw ({ name: "Unauthorized", message: "Role Not Found" })
         }
     } catch (error) {
-        throw error
+        throw ({ name: "ErrorUpdate", message: "Failed to Update Checkout" })
     };
 }
 

@@ -5,7 +5,7 @@ const findAll = async (params) => {
         const cities = await prisma.city.findMany();
         return cities;
     } catch (error) {
-        throw error;
+        throw ({ name: "ErrorNotFound", message: "Cities Not Found" })
     }
 };
 
@@ -19,7 +19,7 @@ const findOne = async (params) => {
         const city = await prisma.city.findUnique(filter);
         return city;
     } catch (error) {
-        throw error;
+        throw ({ name: "ErrorNotFound", message: "City Not Found" })
     }
 };
 

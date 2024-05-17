@@ -54,6 +54,46 @@ const errorHandler = (err, req, res, next) => {
             errorMessage = "Invalid Status";
             res.status(404).json({ message: errorMessage });
             break;
+        case "StockNotEnough":
+            errorMessage = "Product Stock is Not Enough";
+            res.status(404).json({ message: errorMessage });
+            break;
+        case "ErrorFetchingShippingCost":
+            errorMessage = "Failed to Fetching Shipping Cost";
+            res.status(404).json({ message: errorMessage });
+            break;
+        case "ErrorCreate":
+            errorMessage = "Failed to Create";
+            res.status(404).json({ message: errorMessage });
+            break;
+        case "ErrorFetch":
+            errorMessage = "Failed to Fetch Data";
+            res.status(404).json({ message: errorMessage });
+            break;
+        case "ErrorUpdate":
+            errorMessage = "Failed to Update Data";
+            res.status(404).json({ message: errorMessage });
+            break;
+        case "ErrorDelete":
+            errorMessage = "Failed to Delete Data";
+            res.status(404).json({ message: errorMessage });
+            break;
+        case "ErrorRequired":
+            errorMessage = "Required Field Cannot Be Empty";
+            res.status(404).json({ message: errorMessage });
+            break;
+        case "PriceMismatch":
+            errorMessage = "Product Price Mismatch";
+            res.status(404).json({ message: errorMessage });
+            break;
+        case "MustPositive":
+            errorMessage = "Field Must Be Positive Number";
+            res.status(404).json({ message: errorMessage });
+            break;
+        case "ErrorUpload":
+            errorMessage = "Failed to Upload";
+            res.status(404).json({ message: errorMessage });
+            break;
         default:
             errorMessage = "Internal Server Error";
             console.log(err)

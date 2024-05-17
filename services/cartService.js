@@ -13,7 +13,6 @@ const findOne = async (params) => {
         const cart = await prisma.cart.findUnique({
             where: { user_id: logged_user_id }, 
             include: { shopping_items: true }
-            // display shopping_item based on user cart
         });
 
         if (logged_user_id !== cart.user_id) {
@@ -22,7 +21,7 @@ const findOne = async (params) => {
 
         return cart
     } catch (error) {
-        throw error
+        throw ({ name: "ErrorFetch", message: "Error Fetching Carts" })
     }
 }
 
@@ -34,15 +33,14 @@ const update = async (params) => {
 
             const { address_id: paramAddressId, courier_id: paramCourierId, shipping_method: paramShippingMethod, shopping_items: paramShoppingItem } = body;
 
-            if (!id) throw ({ name: "ErrorBadRequest", message: "Cart ID is required" });
+            if (!id) throw ({ name: "ErrorRequired", message: "Cart ID is required" });
 
             // Get current cart data
             let currentCart = await prisma.cart.findUnique({
                 where: { user_id: Number(user_id) },
                 select: { id: true, user_id: true, address_id: true, courier_id: true, shipping_method: true, shopping_items: true }
             });
-            console.log(currentCart, "<<<<<")
-            console.log(user_id, "<<<<< Logged User")
+
             let total_weight = 0;
             let shipping_cost = 0;
             let total_cost = 0;
@@ -72,7 +70,6 @@ const update = async (params) => {
 
                 });
                 user_id_cart = user_id_cart.user_id;
-                console.log(user_id_cart, "<<<<< User ID Cart")
                 if (user_id !== user_id_cart) {
                     throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
                 }
@@ -86,7 +83,6 @@ const update = async (params) => {
                 });
 
                 address_id_cart = address_id_cart.user_id;
-                console.log(address_id_cart, "<<<<< Address ID Cart")
                 if (user_id !== address_id_cart) {
                     throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
                 }
@@ -112,7 +108,7 @@ const update = async (params) => {
                     throw ({ name: "ErrorNotFound", message: "Product Not Found" })
                 }
                 if (product.stock < shopping_item.quantity) {
-                    throw ({ name: "ErrorBadRequest", message: "Stock is not enough" })
+                    throw ({ name: "StockNotEnough", message: "Stock is not enough" })
                 }
             }
 
@@ -287,14 +283,14 @@ const update = async (params) => {
                 },
                 data: dataToUpdate
             })
-            if (!id) {
-                throw ({ name: "CartNotFound" })
+            if (!updateCart) {
+                throw ({ name: "ErrorUpdate", message: "Failed to Update Cart" });
             }
 
             return updateCart;
         });
     } catch (error) {
-        throw error
+        throw ({ name: "ErrorUpdate", message: "Failed to Update Cart" });
     }
 }
 
@@ -343,7 +339,7 @@ const destroy = async (params) => {
 
         return updatedCart;
     } catch (error) {
-        throw error;
+        throw { name: "ErrorDelete", message: "Failed to Delete Shopping Item in Cart"};
     }
 };
 
@@ -382,7 +378,7 @@ const getShippingCost = async (params) => {
         }
     } catch (error) {
         console.error('Error fetching shipping cost:', error.message);
-        throw new Error('Failed to fetch shipping cost');
+        throw ({ name: "ErrorFetch", message: "Error Fetching Shipping Cost" });
     }
 };
 
