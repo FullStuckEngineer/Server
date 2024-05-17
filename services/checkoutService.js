@@ -1,4 +1,11 @@
-const prisma = require("../lib/prisma")
+const prisma = require("../lib/prisma");
+const midtransClient = require('midtrans-client');
+
+const snap = new midtransClient.Snap({
+    isProduction: false,
+    serverKey: process.env.NEXT_PUBLIC_SECRET,
+    clientKey: process.env.NEXT_PUBLIC_CLIENT
+})
 
 const findAll = async (params) => {
     // Filter for findAll
@@ -112,6 +119,7 @@ const create = async (params) => {
 
     try {
         await prisma.$transaction(async (prisma) => {
+            
             const { user_id, body } = params;
                     
             //check address
@@ -122,7 +130,7 @@ const create = async (params) => {
             })
 
             if (!address) { throw ({ name: "ErrorNotFound", message: "Address Not Found" }) }
-
+            
             //check courier
             const courier = await prisma.courier.findUnique({
                 where: {
@@ -157,7 +165,7 @@ const create = async (params) => {
                     net_price: 0
                 } 
             });
-
+            // console.log(createCheckout)
             if (!createCheckout) { throw ({ name: "ErrorCreate", message: "Failed to Create Checkout" }) }
 
             //use loop for check checkout_product
@@ -208,7 +216,9 @@ const create = async (params) => {
                 });
 
                 total_weight += product.weight * currentItem.quantity;
+                console.log(total_weight, "<<<< TOTAL WEIGHT")
             }
+            console.log("HERE")
 
             // Update checkout 
             const checkout = await prisma.checkout.update({
@@ -225,6 +235,89 @@ const create = async (params) => {
         });
     } catch (error) {
         throw ({ name: "ErrorCreate", message: "Failed to Create Checkout" })
+    }
+}
+
+const pay = async (params) => {
+    try {
+        const { idCheckout, role, loggedUser } = params;
+
+        //generate random number for id
+        let id = ~~(Math.random() * 100) + 1;
+
+        if (role === "user") {
+            const checkout = await prisma.checkout.findUnique({
+                where: {
+                    id: Number(idCheckout)
+                }
+            });
+            if (!checkout) {
+                throw ({ name: "ErrorNotFound", message: "Checkout Not Found" })
+            }
+
+             if (checkout.user_id !== loggedUser) {
+                throw ({ name: "ErrorNotFound", message: "Unauthorized" })
+            }
+
+            //take checkout product based on checkout id
+            const checkoutProduct = await prisma.checkoutProduct.findMany({
+                where: {
+                    checkout_id: checkout.id
+                }, select: {
+                    product_id: true,
+                    quantity: true,
+                    price: true
+                }, include: {
+                    product: { select: { name: true } }
+                }
+            })
+
+            if (!checkoutProduct || checkoutProduct.length === 0) {
+                throw ({ name: "ErrorNotFound", message: "Checkout Product Not Found" })
+            }
+
+            //prepare item details and calculate gross amount
+            let itemDetails = []
+            let grossAmount = 0
+
+            checkoutProduct.forEach(product => {
+                itemDetails.push({
+                    id: id,
+                    price: product.price,
+                    quantity: product.quantity,
+                    name: ` Product ${product.product_id}`
+                })
+                grossAmount += product.price * product.quantity
+            })
+
+            const productName = await prisma.product.findFirst({
+                where: {
+                    id: checkoutProduct[0].product_id
+                }, select : { name: true }
+            })
+
+            //send dataCheckout to paymentService
+            let parameter = {
+                transaction_details: {
+                    order_id: `order-${id}`,
+                    gross_amount: grossAmount
+                },
+                item_details: {
+                    name: checkoutProduct.product.name,
+                    price: checkoutProduct.price,
+                    quantity: checkoutProduct.quantity
+                }
+            }
+            
+            //create token
+            const token = await snap.createTransactionToken(parameter)
+            console.log(token)
+            return token
+        } else {
+            throw ({ name: "ErrorNotFound", message: "Unauthorized" })
+        }
+    } catch (error) {
+        throw error
     }
 }
 
@@ -289,4 +382,4 @@ const update = async (params) => {
     };
 }
 
-module.exports = { findAll, findOne, create, update }
+module.exports = { findAll, findOne, create, pay, update }
