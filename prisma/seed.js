@@ -3,8 +3,8 @@ const prisma = require("../lib/prisma.js");
 const bcrypt = require("../lib/bcrypt.js");
 const generateSlug = require("../lib/slug.js");
 
+
 async function main() {
-// ====================================USER &&  ADDRESS
   const users = await prisma.user.create({
     data: {
       email: "user@gmail.com",
@@ -28,15 +28,14 @@ async function main() {
   });
 
 
-
-
-const admin = await prisma.user.create({
-    data: { 
-        email: "admin@gmail.com",
-        name: "Adnan",
-        role: "admin",
-        password: bcrypt.hashPassword("adminpass2"),
-        phone_number:"+6282192221111",
+  await prisma.user.create({
+data:{
+    
+        email: "user2@gmail.com",
+        name: "Usman",
+        role: "user",
+        password: bcrypt.hashPassword("userpass2"),
+        phone_number: "+6282194233333",    
         addresses:{
             create:[
                 {
@@ -49,6 +48,31 @@ const admin = await prisma.user.create({
                 }
             ]
         }
+}
+  })
+
+const admin = await prisma.user.create({
+    data: { 
+        email: "admin@gmail.com",
+        name: "Adnan",
+        role: "admin",
+        password: bcrypt.hashPassword("adminpass2"),
+        phone_number:"+6282192221111",
+      
+
+    }
+})
+
+ 
+
+const stores = await prisma.store.create({
+    data: { 
+        name: "BabyBoo",
+        city_id: 153,
+        province: "Jabodetabek",
+        postal_code: "22991",
+        bank_account_number:"224144566",
+      
 
     }
 })
@@ -61,7 +85,7 @@ const admin = await prisma.user.create({
 
 
 
-// ====================================CATEGORIES && PRODUCT
+
 
  await prisma.category.create({
     data: {
@@ -92,7 +116,43 @@ const admin = await prisma.user.create({
                     slug: generateSlug("celana pendek"),
                     keywords: "Celana Pendek"
         
-                }
+                },
+                {
+                    name: "Overall Bayi",
+                    photo: "https://i.pinimg.com/564x/f8/3a/54/f83a544726e3ea1d89b30f4a7521bdff.jpg",
+                    description:"Baju overal bayi.",
+                    price: 200000,
+                    weight: 2000,
+                    stock: 20,
+                    sku: "Clothing_Celana_003",
+                    slug: generateSlug("baju overall"),
+                    keywords: "baju"
+        
+                },
+                {
+                    name: "Set Baju dinosaurus",
+                    photo: "https://i.pinimg.com/736x/dc/79/4b/dc794be218267061d5319136051d0e9d.jpg",
+                    description:"Baju overal bayi.",
+                    price: 250000,
+                    weight: 3000,
+                    stock: 20,
+                    sku: "Clothing_Celana_004",
+                    slug: generateSlug("baju dinosaurus"),
+                    keywords: "baju"
+        
+                },
+                {
+                    name: "Topi Bayi",
+                    photo: "https://i.pinimg.com/564x/89/fa/a0/89faa0f5ede640886a8978bb3492fa03.jpg",
+                    description:"Topi bayi.",
+                    price: 100000,
+                    weight: 1000,
+                    stock: 30,
+                    sku: "Clothing_Celana_005",
+                    slug: generateSlug("topi"),
+                    keywords: "Topi"
+        
+                },
             ]
         }
     }
@@ -101,7 +161,97 @@ const admin = await prisma.user.create({
 
 await prisma.category.create({
     data: {
-        name: "Alat",
+        name: "Sepatu",
+        products:{
+            create:[
+                {
+                    name: "Sepatu Noki",
+                                photo: "https://i.pinimg.com/564x/45/bc/62/45bc62b7a794b961438102901e7a5bff.jpg",
+                                description:"Sepatu Stylish anak anak",
+                                price: 150000,
+                                weight: 1300,
+                                stock: 40,
+                                sku: "SEPATU_001",
+                                slug: generateSlug("sepatu noki"),
+                                keywords: "fashion" ,
+                            
+                              
+                },
+                {
+                    name: "Sepatu kelinci",
+                    photo: "https://i.pinimg.com/564x/38/76/44/38764450a8fbcb2780e8e476c74a3166.jpg",
+                    description:"sepatu kelinci anak perempuan.",
+                    price: 90000,
+                    weight: 700,
+                    stock: 12,
+                    sku: "Sepatu_002",
+                    slug: generateSlug("sepatu kelinci"),
+                    keywords: "fashion"
+        
+                },
+                {
+                    name: "Sepatu Hijau",
+                    photo: "https://i.pinimg.com/564x/f8/aa/d0/f8aad094d464c662b1a798a4517b3b41.jpg",
+                    description:"Koleksi sepatu hijau anak anak.",
+                    price: 80000,
+                    weight: 800,
+                    stock: 11,
+                    sku: "sepatu_003",
+                    slug: generateSlug("sepatu hijau"),
+                    keywords: "fashion"
+        
+                },
+            ]
+        }
+        
+    }
+})
+
+await prisma.category.create({
+    data: {
+        name: "Perlengkapan Makan",
+        products:{
+            create:[
+                {
+                    name: "Baby Toddler Utensils",
+                                photo: "https://i.pinimg.com/564x/92/52/d5/9252d5b761570a38bcb7c85f5fb04cf9.jpg",
+                                description:"Paket lengkap alat makan untuk bayi",
+                                price: 200000,
+                                weight: 3000,
+                                stock: 11,
+                                sku: "Alat_Makan_001",
+                                slug: generateSlug("alat makan"),
+                                keywords: "alat" ,
+                            
+                              
+                },
+                {
+                    name: "Sendok Plastik",
+                    photo: "https://i.pinimg.com/564x/52/7e/b5/527eb5203253768808cf833e6d4983d5.jpg",
+                    description:"Sendok Plastik warna warni.",
+                    price: 20000,
+                    weight: 400,
+                    stock: 50,
+                    sku: "Alat_makan_002",
+                    slug: generateSlug("Sendok Warna"),
+                    keywords: "alat"
+        
+                },
+                {
+                    name: "Sendok Kodok",
+                    photo: "https://i.pinimg.com/564x/d4/c3/82/d4c382f70bb576d7eca72f59eeea0a9d.jpg",
+                    description:"Sendok Stainless Steel.",
+                    price: 100000,
+                    weight: 1500,
+                    stock: 21,
+                    sku: "Alat_makan_003",
+                    slug: generateSlug("Sendok Stainless"),
+                    keywords: "alat"
+        
+                },
+            ]
+        }
+        
     }
 })
 
@@ -121,7 +271,31 @@ await prisma.category.create({
                                 sku: "Handuk_003",
                                 slug: generateSlug("handuk"),
                                 keywords: "mandi"
-                }
+                },
+                {
+                    name: "sabun Mandi",
+                    photo: "https://i.pinimg.com/564x/c9/56/da/c956da602e09c253a0e3ddc324c0358d.jpg",
+                    description:"Sabun Mandi anak.",
+                    price: 200000,
+                    weight: 3000,
+                    stock: 50,
+                    sku: "Alat_mandi_002",
+                    slug: generateSlug("sabun mandi"),
+                    keywords: "mandi"
+        
+                },
+                {
+                    name: "tempat Sabun Kodok",
+                    photo: "https://i.pinimg.com/564x/fc/c0/8c/fcc08c7ad3aabfb28c579a37c526d8ce.jpg",
+                    description:"Sendok Stainless Steel.",
+                    price: 120000,
+                    weight: 2000,
+                    stock: 21,
+                    sku: "Alat_mandi_003",
+                    slug: generateSlug("Wadah sabun"),
+                    keywords: "alat"
+        
+                },
             ]
         }
 
@@ -144,7 +318,21 @@ await prisma.category.create({
                                 sku: "Kaca_Mata_003",
                                 slug: generateSlug("Kaca mata renang"),
                                 keywords: "kaca mata"   
-                }
+                },
+                {
+                    name: "Pelampung bayi",
+                    photo: "https://i.pinimg.com/736x/cf/50/80/cf508069339b0b84167e7bcadd297be5.jpg",
+                    description:"Pelampung renang bayi.",
+                    price: 100000,
+                    weight: 1500,
+                    stock: 20,
+                    sku: "pelampung_003",
+                    slug: generateSlug("Pelampung"),
+                    keywords: "pelampung"
+        
+                },
+              
+                
             ]
         }
     }
@@ -153,7 +341,6 @@ await prisma.category.create({
 
 
 
-// ====================================CITY
   
 
   let cities = await axios.get('https://api.rajaongkir.com/starter/city', {
@@ -176,7 +363,6 @@ await prisma.category.create({
    
     console.log("City Seeding Success")
  
-// ====================================COURIER
 
 const couriers = await prisma.courier.createMany({
     data:[
