@@ -17,7 +17,7 @@ const findAll = async (params) => {
         take: limit,
     });
 
-    if (!products) throw { name: "Products Not Found" };
+    if (!products) throw { name: "ErrorNotFound", message: "Products Not Found" };
     return products;
 }
 
@@ -34,7 +34,7 @@ const findOne = async (params) => {
     });
 
     if (!foundProduct) {
-        throw { name: "ProductNotFound" };
+        throw { name: "Product Not Found" };
     }
 
     return foundProduct;
@@ -53,7 +53,7 @@ const create = async (params) => {
     const description_encoded = new TextEncoder().encode(description);
 
     if (stock < 0 || price < 0 || weight < 0) {
-        throw { name: "Stock, price, and weight cannot be negative" };
+        throw { name: "MustPositive", message: "Stock, price, and weight cannot be negative" };
     }
 
     const slug = generateSlug(name);
@@ -67,6 +67,7 @@ const create = async (params) => {
 
     if (!category) {
         throw { name: "CategoriesNotFound" };
+        throw { name: "ErrorNotFound", message: "Category Not Found or Inactive" };
     }
 
     const product = await prisma.product.create({
@@ -84,7 +85,9 @@ const create = async (params) => {
             update_at: new Date()
         }
     })
-    if (!product) throw { name: "FailedToCreateProduct" };
+    if (!product){
+        throw ({ name: "ErrorCreate", message: "Failed to Create Product" })
+    }
 
     return product;
 }
@@ -101,7 +104,7 @@ const uploadImage = async (params) => {
             update_at: new Date()
         }
     });
-    if (!product) throw { name: "FailedToCreateProductImage" };
+    if (!product) throw { name: "ErrorUpload", message: "Failed to Upload Image" };
 
     return product;
 }
@@ -112,7 +115,7 @@ const update = async (params) => {
             const { id, name, description, price, weight, category_id, stock, sku, keywords, shopping_items, checkout_products } = params;
 
             if ((stock && stock < 0) || (price && price < 0) || (weight && weight < 0)) {
-                throw { name: "FieldCannotBeNegative" };
+                throw { name: "MustPositive", message: "Stock, price, and weight cannot be negative" };
             }
 
             if (category_id) {
@@ -124,7 +127,7 @@ const update = async (params) => {
                 });
 
                 if (!category) {
-                    throw { name: "Category Not Found or Inactive" };
+                    throw { name: "ErrorNotFound", message: "Category Not Found or Inactive" };
                 }
             }
 
@@ -142,7 +145,7 @@ const update = async (params) => {
                                 id: shopping_item.id
                             }
                         });
-                        if (!destroyedShoppingItem) throw { name: "FailedToUpdateProduct" };
+                        if (!destroyedShoppingItem) throw ({ name: "ErrorUpdate", message: "Failed to Update ShoppingItem" })
                     }
                 }
             }
@@ -172,12 +175,12 @@ const update = async (params) => {
                 },
                 data: dataToUpdate
             });
-            if (!product) throw { name: "FailedToUpdateProduct" };
+            if (!product) throw ({ name: "ErrorUpdate", message: "Failed to Update Product" })
 
             return product;
         });
     } catch (error) {
-        throw { name: "FailedToUpdateProduct" };
+        throw ({ name: "ErrorUpdate", message: "Failed to Update Product" })
     }
 }
 
@@ -192,9 +195,9 @@ const destroy = async (params) => {
                     product_id: productId
                 }
             });
-
-            if (!shopping_items) throw { name: "FailedToDeleteShoppingItems" };
-
+        
+            if (!shopping_items) throw ({ name: "ErrorDelete", message: "Failed to Delete Shopping Item" })
+        
             const product = await prisma.product.update({
                 where: {
                     id: parseInt(productId)
@@ -204,12 +207,12 @@ const destroy = async (params) => {
                     status: "Inactive"
                 }
             })
-            if (!product) throw { name: "FailedToDeleteImage" };
-
+            if (!product) hrow ({ name: "ErrorDelete", message: "Failed to Update Product" })
+        
             return product;
         });
     } catch (error) {
-        throw { name: "FailedToDeleteProduct" };
+        throw ({ name: "ErrorDelete", message: "Failed to Delete Product" })
     }
 }
 
