@@ -13,6 +13,7 @@ const findOne = async (params) => {
         const cart = await prisma.cart.findUnique({
             where: { user_id: logged_user_id }, 
             include: { shopping_items: true }
+
         });
 
         if (logged_user_id !== cart.user_id) {

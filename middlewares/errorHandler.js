@@ -185,6 +185,7 @@ const errorHandler = (err, req, res, next) => {
             res.status(404).json({ message: errorMessage });
             break;
         // Default Error    
+
         default:
             errorMessage = "Internal Server Error";
             console.log(err)

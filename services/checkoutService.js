@@ -118,6 +118,7 @@ const create = async (params) => {
     // - Checkout Product?
 
     try {
+
         await prisma.$transaction(async (prisma) => {
             
             const { user_id, body } = params;
@@ -205,6 +206,7 @@ const create = async (params) => {
 
                 if (!checkout_product) { throw ({ name: "ErrorCreate", message: "Failed to Create Checkout Product" }) }
 
+
                 // Reduce product stock
                 await prisma.product.update({
                     where: {
@@ -253,6 +255,7 @@ const pay = async (params) => {
             });
             if (!checkout) {
                 throw ({ name: "ErrorNotFound", message: "Checkout Not Found" })
+
             }
 
              if (checkout.user_id !== loggedUser) {

@@ -9,6 +9,7 @@ const findAll = async (params) => {
     }
 };
 
+
 const findOne = async (params) => {
     try {
         const id = parseInt(params);
