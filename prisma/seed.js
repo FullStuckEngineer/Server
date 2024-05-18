@@ -3,7 +3,6 @@ const prisma = require("../lib/prisma.js");
 const bcrypt = require("../lib/bcrypt.js");
 const generateSlug = require("../lib/slug.js");
 
-
 async function main() {
   const users = await prisma.user.create({
     data: {
@@ -76,16 +75,6 @@ const stores = await prisma.store.create({
 
     }
 })
-
-
-
-
-
-
-
-
-
-
 
  await prisma.category.create({
     data: {

@@ -4,63 +4,18 @@ require("dotenv").config();
 
 const findOne = async (params) => {
     try {
-        const id = Number(params.id)
+        console.log("PARAMS", params);
+        const id = Number(params.id);
+        const logged_user_id = params.logged_user_id;
 
-        const getById = await prisma.cart.findUnique({
-            where: {
-                user_id: id
-            },
-            include: {
-                shopping_items: {
-                    include: {
-                        product: true
-                    }
-                }
-            }
-        })
-        if (!getById) {
-            throw ({
-                name: "ErrorNotFound",
-                message: "Cart Not Found"
-            })
+        // Check if user_id in cart_id and logged_user_id are the same
+        const cart = await prisma.cart.findUnique({
+            where: { id: id }
+        });
+        
+        if (logged_user_id !== cart.user_id) {
+            throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
         }
-
-
-        let totalPrice = 0
-        let totalWeight = 0
-
-        for (const item of getById.shopping_items) {
-            const product = await prisma.product.findUnique({
-                where: {
-                    id: item.product_id
-                }
-            })
-
-            await prisma.shoppingItem.update({
-                where: {
-                    id: item.id
-                }, data: {
-                    price: product.price
-                }
-            })
-
-            totalPrice += product.price * item.quantity
-            totalWeight += product.weight * item.quantity
-        }
-
-        const cart = await prisma.cart.update({
-            where: { id: getById.id },
-            data: {
-                total_cost: totalPrice, total_weight: totalWeight
-            },
-            include: {
-                shopping_items: {
-                    include: {
-                        product: { select: { weight: true } }
-                    }
-                }
-            }
-        })
 
         return cart
     } catch (error) {
@@ -72,63 +27,137 @@ const findOne = async (params) => {
 const update = async (params) => {
     try {
         await prisma.$transaction(async (prisma) => {
-            const { id, address_id, courier_id, shipping_method, shopping_items, logged_user_id } = params;
+            const { id, address_id: paramAddressId, courier_id: paramCourierId, shipping_method: paramShippingMethod, shopping_items: paramShoppingItem, logged_user_id } = params;
 
-            // Check if user_id and logged_user_id are the same
-            const user_id_cart = await prisma.cart.findUnique({
+            if (!id) throw ({ name: "ErrorBadRequest", message: "Cart ID is required" });
+
+            // Get current cart data
+            let currentCart = await prisma.cart.findUnique({
                 where: { id: Number(id) },
-                select: { user_id: true }
+                select: { address_id: true, courier_id: true, shipping_method: true, shopping_items: true }
             });
-            console.log(user_id_cart);
-            if (logged_user_id !== user_id_cart) {
-                throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
+
+            let total_weight = 0;
+            let shipping_cost = 0;
+            let total_cost = 0;
+            let net_price = 0;
+            let address_id = currentCart.address_id;
+            let courier_id = currentCart.courier_id;
+            let shipping_method = currentCart.shipping_method;
+            let shopping_items = [];
+
+            if (paramAddressId !== undefined) {
+                address_id = paramAddressId;
+            }
+            if (paramCourierId !== undefined) {
+                courier_id = paramCourierId;
+            }
+            if (paramShippingMethod !== undefined) {
+                shipping_method = paramShippingMethod;
+            }
+            if (paramShoppingItem !== undefined) {
+                shopping_items = paramShoppingItem;
+            }
+            
+            if (logged_user_id !== undefined) {
+                // Check if user_id and logged_user_id are the same
+                let user_id_cart = await prisma.cart.findUnique({
+                    where: { id: Number(id) },
+                    select: { user_id: true }
+                });
+                user_id_cart = user_id_cart.user_id;
+
+                if (logged_user_id !== user_id_cart) {
+                    throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
+                }
             }
 
             // Check if user_id from address_id and logged_user_id are the same
-            const address_id_cart = await prisma.address.findUnique({
-                where: { id: Number(address_id) },
-                select: { user_id: true }
-            });
-            console.log(address_id_cart);
-            if (logged_user_id !== address_id_cart) {
-                throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
+            if (paramAddressId !== undefined) {
+                let address_id_cart = await prisma.address.findUnique({
+                    where: { id: Number(address_id) },
+                    select: { user_id: true }
+                });
+
+                address_id_cart = address_id_cart.user_id;
+
+                if (logged_user_id !== address_id_cart) {
+                    throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
+                }
             }
 
             // Check if courier_id exist
-            const courier = await prisma.courier.findUnique({
-                where: { id: Number(courier_id) }
-            });
-            if (!courier) {
-                throw ({ name: "ErrorNotFound", message: "Courier Not Found" })
+            if (paramCourierId !== undefined) {                
+                const courier = await prisma.courier.findUnique({
+                    where: { id: Number(courier_id) }
+                });
+                if (!courier) {
+                    throw ({ name: "ErrorNotFound", message: "Courier Not Found" })
+                }
             }
 
-            // Check if shopping items exist in ShoppingItem entity
-            const shopping_items_exist = await prisma.shoppingItem.findMany({
-                where: { id: { in: shopping_items.id } }
-            });
-            if (shopping_items.length !== shopping_items_exist.length) {
-                throw ({ name: "ErrorNotFound", message: "Shopping Item Not Found" })
+            // Check if product in shopping_items exist and stock is enough
+            for (let i = 0; i < shopping_items.length; i++) {
+                const shopping_item = shopping_items[i];
+                const product = await prisma.product.findUnique({
+                    where: { id: shopping_item.product_id }
+                });
+                if (!product) {
+                    throw ({ name: "ErrorNotFound", message: "Product Not Found" })
+                }
+                if (product.stock < shopping_item.quantity) {
+                    throw ({ name: "ErrorBadRequest", message: "Stock is not enough" })
+                }
             }
 
             // Get current shopping_items
-            const currentShoppingItemsCart = await prisma.cart.findUnique({ 
+            let currentShoppingItemsCart = await prisma.cart.findUnique({ 
                 where: { id: Number(id) },
                 select: { shopping_items: true }
             });
 
+            currentShoppingItemsCart = currentShoppingItemsCart.shopping_items;
+
             // List of current shopping_items id
-            const currentShoppingItemIds = currentShoppingItemsCart.shopping_items.map(item => item.id);
+            let currentShoppingItemProducts = [];
+            if (currentShoppingItemsCart.length > 0) {
+                currentShoppingItemProducts = currentShoppingItemsCart.map(item => item.product_id);
+            }
 
             // Proceed to update shopping_items
             for(let i = 0; i < shopping_items.length; i++) {
                 const shopping_item = shopping_items[i];
-                if (!currentShoppingItemIds.includes(shopping_item.id)) {
+                if (currentShoppingItemProducts.length == 0 || !currentShoppingItemProducts.includes(shopping_item.product_id)) {
                     // If shopping_item not in current shopping_items
                     if(shopping_item.quantity > 0) {
                         // Check if shopping_item.quantity > 0, then add to current shopping_items
+
+                        // Get product detail
+                        const product = await prisma.product.findUnique({
+                            where: { id: shopping_item.product_id }
+                        });
+
+                        await prisma.shoppingItem.create({
+                            data: {
+                                cart_id: Number(id),
+                                product_id: shopping_item.product_id,
+                                quantity: shopping_item.quantity,
+                                price: product.price,
+                                weight: product.weight,
+                            }
+                        });
+                        
+                        const shopping_item_id = await prisma.shoppingItem.findFirst({
+                            where: {
+                                cart_id: Number(id),
+                                product_id: shopping_item.product_id
+                            },
+                            select: { id: true }
+                        });
+
                         await prisma.cart.update({
-                            where: { id: Number(id) },
-                            data: { shopping_items: { connect: { id: shopping_item.id } } }
+                            where: { id: id },
+                            data: { shopping_items: { connect: { id: shopping_item_id.id } } }
                         })
                     }
                     // else if shopping_item.quantity = 0, then ignore it
@@ -136,57 +165,119 @@ const update = async (params) => {
                     // If shopping_item in current shopping_items
                     if(shopping_item.quantity > 0) {
                         // Check if shopping_item.quantity > 0, then update shopping_item
+
+                        // Find shopping item_id by product_id
+                        let shopping_item_id = await prisma.shoppingItem.findFirst({
+                            where: {
+                                cart_id: Number(id),
+                                product_id: shopping_item.product_id
+                            },
+                            select: { id: true }
+                        });
+                        shopping_item_id = shopping_item_id.id;
+
+                        // Get product detail
+                        const product = await prisma.product.findUnique({
+                            where: { id: shopping_item.product_id }
+                        });
+
                         await prisma.shoppingItem.update({
-                            where: { id: shopping_item.id },
-                            data: { quantity: shopping_item.quantity }
+                            where: { id: shopping_item_id },
+                            data: { 
+                                quantity: shopping_item.quantity,
+                                price: product.price,
+                                weight: product.weight,
+                            }
                         })
                     } else {
                         // else if shopping_item.quantity = 0, then remove shopping_item
-                        await prisma.cart.update({
-                            where: { id: Number(id) },
-                            data: { shopping_items: { disconnect: { id: shopping_item.id } } }
+                        // Find shopping item_id by product_id
+                        let shopping_item_id = await prisma.shoppingItem.findFirst({
+                            where: {
+                                cart_id: Number(id),
+                                product_id: shopping_item.product_id
+                            },
+                            select: { id: true }
+                        });
+                        shopping_item_id = shopping_item_id.id;
+
+                        await prisma.shoppingItem.delete({
+                            where: {
+                                id: shopping_item_id
+                            }
                         })
                     }
                 }
             }       
             
             // Get updated shopping_items
-            const updatedShoppingItems = await prisma.cart.findUnique({
+            let updatedShoppingItems = await prisma.cart.findUnique({
                 where: { id: Number(id) },
                 select: { shopping_items: true }
             });
+            updatedShoppingItems = updatedShoppingItems.shopping_items;        
 
-            // Get total weight
-            const total_weight = updatedShoppingItems.reduce((sumWeight, item) => sumWeight + (item.weight * item.quantity), 0);
+            if (updatedShoppingItems.length > 0) {
+                // Calculate total weight = weight * quantity of shopping_items
+                total_weight = updatedShoppingItems.reduce((sumWeight, item) => sumWeight + (item.weight * item.quantity), 0);
 
-            // TODO: Get shipping cost
-            const city_id = await prisma.address.findUnique({
-                where: { id: Number(address_id) },
-                select: { city_id: true }
+                // Calculate total cost = total (price * quantity) of shopping_items
+                total_cost = updatedShoppingItems.reduce((sumPrice, item) => sumPrice + (item.price * item.quantity), 0);
+
+                // Get destination city_id
+                let city_id = await prisma.address.findUnique({
+                    where: { id: Number(address_id) },
+                    select: { city_id: true }
+                });
+                city_id = city_id.city_id;
+
+                // Get courier name
+                let courier_name = await prisma.courier.findUnique({
+                    where: { id: Number(courier_id) },
+                    select: { name: true }
+                });
+                courier_name = courier_name.name      
+                      
+                // Get Shipping Cost
+                const shipping_cost_params = {city_id, total_weight, courier_name, shipping_method}
+                if (total_weight > 0) {
+                    shipping_cost = await getShippingCost(shipping_cost_params);
+                }
+
+                // Calculate net price = total cost + shipping cost
+                net_price = total_cost + shipping_cost;
+            } else {
+                address_id = null;
+                courier_id = null;
+                shipping_method = null;
+                shipping_cost = null;
+                total_weight = null;
+                total_cost = null;
+                net_price = null;
+            }
+
+            // Find Created At
+            let created_at = await prisma.cart.findUnique({
+                where: { id: Number(id) },
+                select: { created_at: true }
             });
-
-            const courier_name = courier.name;
-
-            const shipping_cost_params = {city_id, total_weight, courier_name}
-            const shipping_cost = getShippingCost(shipping_cost_params)
-
-            // TODO : Get Total Cost = total (price * quantity) of shopping_items + shipping_cost
-            const total_cost = updatedShoppingItems.reduce((sumPrice, item) => sumPrice + (item.price * item.quantity), 0) + shipping_cost;
+            created_at = created_at.created_at;
             
             const dataToUpdate = {
-                ...(shipping_cost && { shipping_cost }),
-                ...(address_id && { address_id }),
-                ...(courier_id && { courier_id }),
-                ...(shipping_method && { shipping_method }),
-                ...(total_weight && { total_weight }),
-                ...(total_cost && { total_cost }),
-                ...(updatedShoppingItems && { shopping_items: updatedShoppingItems }),
-                updated_at: new Date()
-            }
+                address_id,
+                courier_id,
+                shipping_method,
+                shiping_cost: shipping_cost,
+                total_weight: total_weight,
+                total_cost: total_cost,
+                net_price: net_price,
+                update_at: new Date(),
+                created_at: created_at
+            };            
 
             const updateCart = await prisma.cart.update({
                 where: { 
-                    id: Number(id) 
+                    id: id 
                 },
                 data: dataToUpdate
             })
@@ -203,71 +294,61 @@ const update = async (params) => {
 
 const destroy = async (params) => {
     try {
-        // buat operasi pengurangan harga untuk setiap shopping_item dengan total_cost untuk setiap penghapusan shopping_item
-        // buat operasi pengurangan weight untuk setiap shopping_item dengan total_weight untuk setiap penghapusan shopping_item
-        const { id, idShoppingItem } = params
-
-        const shoppingItems = await prisma.shoppingItem.findUnique({
+        const { user_id, idShoppingItem } = params;
+        
+        // Get cart by user_id
+        const cart = await prisma.cart.findUnique({
             where: {
-                id: Number(idShoppingItem)
-            }, include: {
-                cart: {
-                    select: {
-                        user_id: true, total_cost: true, total_weight: true
-                    }
-                }, product: true
+                user_id: Number(user_id)
             }
-        })
+        });
 
-        if (!shoppingItems) {
-            throw ({
-                name: "ErrorNotFound",
-                message: "Shopping Item Not Found"
-            })
+        if (!cart) {
+            throw ({ name: "ErrorNotFound", message: "Cart Not Found" });
         }
 
-        if (shoppingItems.cart.user_id !== Number(id)) {
-            throw { name: "NotPermitted" }
+        // Get cart's shopping item
+        const cartShoppingItems = await prisma.shoppingItem.findMany({
+            where: {
+                cart_id: cart.id
+            }
+        });
+
+        // Check if idShoppingItem is in cart's shopping item
+        const shoppingItem = cartShoppingItems.find(item => item.id === Number(idShoppingItem));
+        if (!shoppingItem) {
+            throw ({ name: "ErrorNotFound", message: "Shopping Item Not Found" });
         }
 
-        const totalPrice = shoppingItems.price * shoppingItems.quantity
-        const fixPrice = shoppingItems.cart.total_cost - totalPrice
-        const totalWeight = shoppingItems.product.weight * shoppingItems.quantity
-        const fixWeight = shoppingItems.cart.total_weight - totalWeight
-        console.log(fixPrice)
-        console.log(fixWeight)
+        // Set shopping item quantity to 0
+        shoppingItem.quantity = 0;
 
-        await prisma.cart.update({
-            where: {
-                user_id: Number(id)
-            }, data: {
-                total_cost: fixPrice,
-                total_weight: fixWeight
-            }
-        })
+        // Prepare the update parameters
+        const updateParams = {
+            id: cart.id,
+            shopping_items: [shoppingItem],
+        };
 
-        const delShoppingItem = await prisma.shoppingItem.delete({
-            where: {
-                id: Number(idShoppingItem)
-            }
-        })
+        // Call the update function
+        const updatedCart = await update(updateParams);
 
-        return delShoppingItem
+        return updatedCart;
     } catch (error) {
-        throw error
+        throw error;
     }
-}
+};
 
 const getShippingCost = async (params) => {
     try {
-        const {city_id, total_weight, courier} = params;
+        const {city_id, total_weight, courier_name, shipping_method} = params;
+
         const response = await axios.post(
             'https://api.rajaongkir.com/starter/cost',
             {
                 origin: 501,
-                destination: parseInt(city_id),
-                weight: parseFloat(total_weight),
-                courier: courier
+                destination: city_id,
+                weight: total_weight,
+                courier: courier_name
             },
             {
                 headers: {
@@ -277,8 +358,19 @@ const getShippingCost = async (params) => {
             }
         );
 
-        const shippingCost = response.data.rajaongkir.results[0].costs[0].costs[0].value;
-        return shippingCost;
+        // Get all shipping method
+        const courier_shipping_methods = response.data.rajaongkir.results[0].costs.map(cost => cost.service);
+        console.log('Courier Shipping Methods:', courier_shipping_methods);
+        console.log('Shipping Method:', shipping_method);
+
+        // Check if shipping method is available
+        if (!courier_shipping_methods.includes(shipping_method)) {
+            throw ({ name: "ErrorNotFound", message: "Shipping Method Not Found" })
+        } else {
+            // Get shipping cost based on shipping method
+            const shipping_cost = response.data.rajaongkir.results[0].costs.find(cost => cost.service == shipping_method);
+            return shipping_cost.cost[0].value;
+        }
     } catch (error) {
         console.error('Error fetching shipping cost:', error.message);
         throw new Error('Failed to fetch shipping cost');
