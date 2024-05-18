@@ -10,7 +10,9 @@ const findOne = async (params) => {
 
         // Check if user_id in cart_id and logged_user_id are the same
         const cart = await prisma.cart.findUnique({
-            where: { user_id: logged_user_id }
+
+            where: { id: id }
+
         });
         
         if (logged_user_id !== cart.user_id) {

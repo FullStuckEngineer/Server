@@ -373,3 +373,4 @@ const couriers = await prisma.courier.createMany({
 }
 
 main();
+

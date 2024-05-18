@@ -47,8 +47,6 @@ const create = async (params) => {
     try {
 
         const { user_id, body } = params
-
-
         //check address
         const address = await prisma.address.findUnique({
             where: {
@@ -67,21 +65,19 @@ const create = async (params) => {
 
         if(!courier) { throw ({ name: "ErrorNotFound", message: "Courier Not Found" }) }
 
-        //take all body 
-        const { address_id, courier_id, payment_method, bank, payment_receipt, shipping_method, shipping_note, shipping_cost, net_price, total_cost, total_weight, checkout_products_attributes } = body
 
         const createCheckout = await prisma.checkout.create({
             data: {
                 user_id: Number(user_id),
-                address_id,
-                courier_id,
-                bank,
-                shipping_method,
-                shipping_note,
-                total_cost,
-                shipping_cost,
-                net_price,
-                payment_method,
+                address_id: body.address_id,
+                courier_id: body.courier_id,
+                bank: body.bank,
+                shipping_method: body.shipping_method,
+                shipping_note: body.shipping_note,
+                total_cost: body.total_cost,
+                shipping_cost: body.shipping_cost,
+                net_price: body.net_price,
+                payment_method: body.payment_method,
                 checkout_products,
             } 
         });
@@ -92,8 +88,6 @@ const create = async (params) => {
        //price
        //reduce stock
        //update checkout
-
-
        for (let i = 0; i < body.checkout_products_attributes.length; i++) {
         const currentItem = body.checkout_products_attributes[i]
 
@@ -103,7 +97,6 @@ const create = async (params) => {
             }
         })
        }
-
 
         return createCheckout
     } catch (error) {
