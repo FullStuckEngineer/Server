@@ -2,6 +2,7 @@ const cityService = require("../services/cityService");
 
 const findAll = async (req, res, next) => {
     try {
+
         const params = req.params;
         const cities = await cityService.findAll(params);
         res.status(200).json(cities);
