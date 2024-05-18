@@ -45,8 +45,8 @@ const create = async (params) => {
     // - filter
     // - Checkout Product?
     try {
-        const { user_id, body } = params
 
+        const { user_id, body } = params
         //check address
         const address = await prisma.address.findUnique({
             where: {
@@ -65,6 +65,7 @@ const create = async (params) => {
 
         if(!courier) { throw ({ name: "ErrorNotFound", message: "Courier Not Found" }) }
 
+
         const createCheckout = await prisma.checkout.create({
             data: {
                 user_id: Number(user_id),
@@ -80,6 +81,7 @@ const create = async (params) => {
                 checkout_products,
             } 
         });
+
        //use loop for check checkout_product
        //product_id
        //quantity
