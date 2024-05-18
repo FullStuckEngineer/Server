@@ -45,7 +45,9 @@ const create = async (params) => {
     // - filter
     // - Checkout Product?
     try {
+
         const { user_id, body } = params
+
 
         //check address
         const address = await prisma.address.findUnique({
@@ -83,12 +85,15 @@ const create = async (params) => {
                 checkout_products,
             } 
         });
+
        //use loop for check checkout_product
        //product_id
        //quantity
        //price
        //reduce stock
        //update checkout
+
+
        for (let i = 0; i < body.checkout_products_attributes.length; i++) {
         const currentItem = body.checkout_products_attributes[i]
 
@@ -98,6 +103,7 @@ const create = async (params) => {
             }
         })
        }
+
 
         return createCheckout
     } catch (error) {
