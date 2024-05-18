@@ -6,7 +6,7 @@ const findAll = async (params) => {
         const getAll = await prisma.address.findMany({ where: { user_id: id } })
         return getAll
     } catch (error) {
-        throw error
+        throw ({ name: "ErrorFetch", message: "Error Fetching Addresses" })
     }
 }
 
@@ -26,7 +26,7 @@ const findOne = async (params) => {
             return getById
         }
     } catch (error) {
-        throw error
+        throw ({ name: "ErrorFetch", message: "Error Fetching Address" })
     }
 }
 
@@ -44,7 +44,7 @@ const create = async (params) => {
 
         return address
     } catch (error) {
-        throw error
+        throw { name: "ErrorCreate", message: "Failed to Create Address"};
     }
 }
 
@@ -60,7 +60,7 @@ const update = async (params) => {
         }
 
         if (!address || address.user_id !== user_id) {
-            throw { name: "ErrorNotFound" }
+            throw { name: "Unauthorized" }
         }
 
         const updatedAddress = await prisma.address.update({
@@ -69,7 +69,7 @@ const update = async (params) => {
         })
         return updatedAddress
     } catch (error) {
-        throw error
+        throw { name: "ErrorUpdate", message: "Failed to Update Category"};
     }
 }
 
@@ -83,7 +83,7 @@ const destroy = async (params) => {
         const deleteAddress = await prisma.address.delete({ where: { user_id, id: Number(id) } })
         return deleteAddress
     } catch (error) {
-        throw error
+        throw { name: "ErrorDelete", message: "Failed to Delete Category"};
     }
 }
 

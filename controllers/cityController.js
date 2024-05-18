@@ -13,8 +13,8 @@ const findAll = async (req, res, next) => {
 
 const findOne = async (req, res, next) => {
     try {
-        const params = req.params;
-        const city = await cityService.findOne(params);
+        const id = req.params.id;
+        const city = await cityService.findOne(id);
         res.status(200).json(city)
     }
     catch (error) {

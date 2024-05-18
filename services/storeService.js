@@ -5,7 +5,7 @@ const findAll = async (params) => {
         const getAll = await prisma.store.findMany()
         return getAll
     } catch (error) {
-        throw error
+        throw ({ name: "ErrorFetch", message: "Error Fetching Stores" })
     }
 }
 
@@ -16,12 +16,12 @@ const findOne = async (params) => {
             where: { id: Number(id) }
         })
         if (!getOne) {
-            throw ({ name: "ErrorNotFound", message: "Store Not Found" })
+            throw ({ name: "StoreNotFound" })
         } else {
             return getOne
         }
     } catch (error) {
-        throw error
+        throw ({ name: "ErrorFetch", message: "Error Fetching Store" })
     }
 }
 
@@ -43,7 +43,7 @@ const create = async (params) => {
         })
         return createStore
     } catch (error) {
-        throw error
+        throw ({ name: "ErrorCreate", message: "Failed to Create Store" })
     }
 }
 
@@ -55,7 +55,7 @@ const update = async (params) => {
         })
 
         if (!findStore) {
-            throw { name: "ErrorNotFound" }
+            throw { name: "ErrorNotFound", message: "Store Not Found" }
         }
 
         const updateStore = await prisma.store.update({
@@ -67,7 +67,7 @@ const update = async (params) => {
         })
         return updateStore
     } catch (error) {
-        throw error
+        throw ({ name: "ErrorUpdate", message: "Failed to Update Store" })
     }
 }
 
@@ -79,7 +79,7 @@ const destroy = async (params) => {
         })
 
         if (!findStore) {
-            throw { name: "ErrorNotFound" }
+            throw { name: "ErrorNotFound", message: "Store Not Found"}
         }
         
         const deleteStore = await prisma.store.delete({
@@ -87,9 +87,13 @@ const destroy = async (params) => {
                 id: Number(id)
             }
         })
+
+        if (!deleteStore) {
+            throw { name: "FailedToDeleteStore" }
+        }
         return deleteStore
     } catch (error) {
-        throw error
+        throw ({ name: "ErrorDelete", message: "Failed to Delete Store" })
     }
 }
 

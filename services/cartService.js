@@ -9,19 +9,20 @@ const findOne = async (params) => {
         const logged_user_id = params.logged_user_id;
 
         // Check if user_id in cart_id and logged_user_id are the same
+        // and display shopping_item based on user cart
         const cart = await prisma.cart.findUnique({
-
-            where: { id: id }
+            where: { user_id: logged_user_id }, 
+            include: { shopping_items: true }
 
         });
-        
+
         if (logged_user_id !== cart.user_id) {
             throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
         }
 
         return cart
     } catch (error) {
-        throw error
+        throw ({ name: "ErrorFetch", message: "Error Fetching Carts" })
     }
 }
 
@@ -29,25 +30,27 @@ const findOne = async (params) => {
 const update = async (params) => {
     try {
         await prisma.$transaction(async (prisma) => {
-            const { id, address_id: paramAddressId, courier_id: paramCourierId, shipping_method: paramShippingMethod, shopping_items: paramShoppingItem, logged_user_id } = params;
+            const { user_id, id, body } = params
 
-            if (!id) throw ({ name: "ErrorBadRequest", message: "Cart ID is required" });
+            const { address_id: paramAddressId, courier_id: paramCourierId, shipping_method: paramShippingMethod, shopping_items: paramShoppingItem } = body;
+
+            if (!id) throw ({ name: "ErrorRequired", message: "Cart ID is required" });
 
             // Get current cart data
             let currentCart = await prisma.cart.findUnique({
-                where: { id: Number(id) },
-                select: { address_id: true, courier_id: true, shipping_method: true, shopping_items: true }
+                where: { user_id: Number(user_id) },
+                select: { id: true, user_id: true, address_id: true, courier_id: true, shipping_method: true, shopping_items: true }
             });
 
             let total_weight = 0;
             let shipping_cost = 0;
             let total_cost = 0;
             let net_price = 0;
-            let address_id = currentCart.address_id;
-            let courier_id = currentCart.courier_id;
-            let shipping_method = currentCart.shipping_method;
+            let address_id = currentCart.address_id ? currentCart.address_id : null;
+            let courier_id = currentCart.courier_id ? currentCart.courier_id : null;
+            let shipping_method = currentCart.shipping_method ? currentCart.shipping_method : null;
             let shopping_items = [];
-
+            
             if (paramAddressId !== undefined) {
                 address_id = paramAddressId;
             }
@@ -60,16 +63,15 @@ const update = async (params) => {
             if (paramShoppingItem !== undefined) {
                 shopping_items = paramShoppingItem;
             }
-            
-            if (logged_user_id !== undefined) {
+
+            if (user_id !== undefined) {
                 // Check if user_id and logged_user_id are the same
                 let user_id_cart = await prisma.cart.findUnique({
-                    where: { id: Number(id) },
-                    select: { user_id: true }
+                    where: { user_id: Number(user_id) },
+
                 });
                 user_id_cart = user_id_cart.user_id;
-
-                if (logged_user_id !== user_id_cart) {
+                if (user_id !== user_id_cart) {
                     throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
                 }
             }
@@ -82,14 +84,13 @@ const update = async (params) => {
                 });
 
                 address_id_cart = address_id_cart.user_id;
-
-                if (logged_user_id !== address_id_cart) {
+                if (user_id !== address_id_cart) {
                     throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
                 }
             }
 
             // Check if courier_id exist
-            if (paramCourierId !== undefined) {                
+            if (paramCourierId !== undefined) {
                 const courier = await prisma.courier.findUnique({
                     where: { id: Number(courier_id) }
                 });
@@ -108,13 +109,13 @@ const update = async (params) => {
                     throw ({ name: "ErrorNotFound", message: "Product Not Found" })
                 }
                 if (product.stock < shopping_item.quantity) {
-                    throw ({ name: "ErrorBadRequest", message: "Stock is not enough" })
+                    throw ({ name: "StockNotEnough", message: "Stock is not enough" })
                 }
             }
 
             // Get current shopping_items
-            let currentShoppingItemsCart = await prisma.cart.findUnique({ 
-                where: { id: Number(id) },
+            let currentShoppingItemsCart = await prisma.cart.findUnique({
+                where: { user_id: Number(user_id) },
                 select: { shopping_items: true }
             });
 
@@ -127,11 +128,11 @@ const update = async (params) => {
             }
 
             // Proceed to update shopping_items
-            for(let i = 0; i < shopping_items.length; i++) {
+            for (let i = 0; i < shopping_items.length; i++) {
                 const shopping_item = shopping_items[i];
                 if (currentShoppingItemProducts.length == 0 || !currentShoppingItemProducts.includes(shopping_item.product_id)) {
                     // If shopping_item not in current shopping_items
-                    if(shopping_item.quantity > 0) {
+                    if (shopping_item.quantity > 0) {
                         // Check if shopping_item.quantity > 0, then add to current shopping_items
 
                         // Get product detail
@@ -148,7 +149,7 @@ const update = async (params) => {
                                 weight: product.weight,
                             }
                         });
-                        
+
                         const shopping_item_id = await prisma.shoppingItem.findFirst({
                             where: {
                                 cart_id: Number(id),
@@ -158,20 +159,20 @@ const update = async (params) => {
                         });
 
                         await prisma.cart.update({
-                            where: { id: id },
+                            where: { id: Number(id) },
                             data: { shopping_items: { connect: { id: shopping_item_id.id } } }
                         })
                     }
                     // else if shopping_item.quantity = 0, then ignore it
                 } else {
                     // If shopping_item in current shopping_items
-                    if(shopping_item.quantity > 0) {
+                    if (shopping_item.quantity > 0) {
                         // Check if shopping_item.quantity > 0, then update shopping_item
 
                         // Find shopping item_id by product_id
                         let shopping_item_id = await prisma.shoppingItem.findFirst({
                             where: {
-                                cart_id: Number(id),
+                                cart_id: currentCart.id,
                                 product_id: shopping_item.product_id
                             },
                             select: { id: true }
@@ -185,7 +186,7 @@ const update = async (params) => {
 
                         await prisma.shoppingItem.update({
                             where: { id: shopping_item_id },
-                            data: { 
+                            data: {
                                 quantity: shopping_item.quantity,
                                 price: product.price,
                                 weight: product.weight,
@@ -196,7 +197,7 @@ const update = async (params) => {
                         // Find shopping item_id by product_id
                         let shopping_item_id = await prisma.shoppingItem.findFirst({
                             where: {
-                                cart_id: Number(id),
+                                cart_id: currentCart.id,
                                 product_id: shopping_item.product_id
                             },
                             select: { id: true }
@@ -210,14 +211,14 @@ const update = async (params) => {
                         })
                     }
                 }
-            }       
-            
+            }
+
             // Get updated shopping_items
             let updatedShoppingItems = await prisma.cart.findUnique({
-                where: { id: Number(id) },
+                where: { user_id: Number(user_id) },
                 select: { shopping_items: true }
             });
-            updatedShoppingItems = updatedShoppingItems.shopping_items;        
+            updatedShoppingItems = updatedShoppingItems.shopping_items;
 
             if (updatedShoppingItems.length > 0) {
                 // Calculate total weight = weight * quantity of shopping_items
@@ -238,10 +239,10 @@ const update = async (params) => {
                     where: { id: Number(courier_id) },
                     select: { name: true }
                 });
-                courier_name = courier_name.name      
-                      
+                courier_name = courier_name.name
+
                 // Get Shipping Cost
-                const shipping_cost_params = {city_id, total_weight, courier_name, shipping_method}
+                const shipping_cost_params = { city_id, total_weight, courier_name, shipping_method }
                 if (total_weight > 0) {
                     shipping_cost = await getShippingCost(shipping_cost_params);
                 }
@@ -260,11 +261,11 @@ const update = async (params) => {
 
             // Find Created At
             let created_at = await prisma.cart.findUnique({
-                where: { id: Number(id) },
+                where: { user_id: Number(user_id) },
                 select: { created_at: true }
             });
             created_at = created_at.created_at;
-            
+
             const dataToUpdate = {
                 address_id,
                 courier_id,
@@ -275,22 +276,22 @@ const update = async (params) => {
                 net_price: net_price,
                 update_at: new Date(),
                 created_at: created_at
-            };            
+            };
 
             const updateCart = await prisma.cart.update({
-                where: { 
-                    id: id 
+                where: {
+                    id: Number(id)
                 },
                 data: dataToUpdate
             })
             if (!updateCart) {
-                throw ({ name: "ErrorNotFound", message: "Failed to Update Cart" })
+                throw ({ name: "ErrorUpdate", message: "Failed to Update Cart" });
             }
 
             return updateCart;
         });
     } catch (error) {
-        throw error
+        throw ({ name: "ErrorUpdate", message: "Failed to Update Cart" });
     }
 }
 
@@ -327,8 +328,11 @@ const destroy = async (params) => {
 
         // Prepare the update parameters
         const updateParams = {
+            user_id: Number(user_id),
             id: cart.id,
-            shopping_items: [shoppingItem],
+            body: { // Wrap shopping items inside body
+                shopping_items: [shoppingItem]
+            }
         };
 
         // Call the update function
@@ -336,13 +340,13 @@ const destroy = async (params) => {
 
         return updatedCart;
     } catch (error) {
-        throw error;
+        throw { name: "ErrorDelete", message: "Failed to Delete Shopping Item in Cart"};
     }
 };
 
 const getShippingCost = async (params) => {
     try {
-        const {city_id, total_weight, courier_name, shipping_method} = params;
+        const { city_id, total_weight, courier_name, shipping_method } = params;
 
         const response = await axios.post(
             'https://api.rajaongkir.com/starter/cost',
@@ -375,7 +379,7 @@ const getShippingCost = async (params) => {
         }
     } catch (error) {
         console.error('Error fetching shipping cost:', error.message);
-        throw new Error('Failed to fetch shipping cost');
+        throw ({ name: "ErrorFetch", message: "Error Fetching Shipping Cost" });
     }
 };
 
