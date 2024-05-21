@@ -1,11 +1,16 @@
 const cityService = require("../services/cityService");
 
+const perPage = 10;
+
 const findAll = async (req, res, next) => {
     try {
-
-        const params = req.params;
+        params = {
+            page: req.query.page? parseInt(req.query.page) : 1,
+            perPage: perPage,
+            searchTerm: req.query.searchTerm,
+        }
         const cities = await cityService.findAll(params);
-        res.status(200).json(cities);
+        res.status(200).json({message: "Success Get All Cities", data: cities})
     } catch (error) {
         next(error);
     }
