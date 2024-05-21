@@ -11,7 +11,7 @@ const findAll = async (req, res, next) => {
         }
 
         const categories = await categoryService.findAll(params)
-        res.status(200).json({message: "Success Get All Checkout", data: findAll})
+        res.status(200).json({message: "Success Get All Checkout", data: categories})
     } catch(err){
         next(err)
     }
