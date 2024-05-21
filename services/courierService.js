@@ -1,8 +1,37 @@
 const prisma = require("../lib/prisma");
 
 const findAll = async (params) => {
-  const sql = await prisma.courier.findMany(params);
-  return sql;
+  try {
+    const { page = 1, perPage = 10, searchTerm = '' } = params;
+
+    const offset = (page - 1) * perPage;
+    const limit = perPage;
+
+    let where = {};
+    if (searchTerm) {
+        where.OR = [
+            { name: { contains: searchTerm, mode: 'insensitive' } },
+        ];
+    }
+
+    const totalCount = await prisma.courier.count({ where });
+
+    const couriers = await prisma.courier.findMany({
+        where,
+        skip: offset,
+        take: limit
+    });
+
+    if (!couriers || couriers.length === 0) {
+        throw { name: "ErrorNotFound", message: "Couriers Not Found" };
+    }
+
+    const totalPages = Math.ceil(totalCount / perPage);
+    return { couriers, totalPages };
+  } catch (error) {
+      console.error(error);
+      throw { name: "ErrorFetch", message: "Error Fetching Couriers" };
+  }
 };
 
 
