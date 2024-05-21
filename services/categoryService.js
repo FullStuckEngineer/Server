@@ -2,35 +2,47 @@ const prisma = require("../lib/prisma");
 const productService = require("./productService");
 
 const findAll = async (params) => {
-    try{
-        const { page = 1, perPage = 10, role = 'User' } = params;
+    try {
+        const { page = 1, perPage = 10, role = 'User', searchTerm = '', status = '', sortBy = '' } = params;
 
         const offset = (page - 1) * perPage;
         const limit = perPage;
-    
+
         let where = {};
         if (role === 'User') {
             where.status = 'Active';
         }
+        if (status) {
+            where.status = status;
+        }
+        if (searchTerm) {
+            where.OR = [
+                { name: { contains: searchTerm, mode: 'insensitive' } },
+            ];
+        }
 
         const totalCount = await prisma.category.count({ where });
-    
+
+        const orderBy = sortBy ? { [sortBy]: 'asc' } : undefined;
+
         const categories = await prisma.category.findMany({
             where,
             skip: offset,
             take: limit,
+            orderBy,
         });
-    
-        if (!categories) {
-            throw { name: "ErrorNotFound", message: "Categories Not Found"};
+
+        if (!categories || categories.length === 0) {
+            throw { name: "ErrorNotFound", message: "Categories Not Found" };
         }
-        
+
         const totalPages = Math.ceil(totalCount / perPage);
-        return {categories, totalPages};    
+        return { categories, totalPages };
     } catch (error) {
-        throw ({ name: "ErrorFetch", message: "Error Fetching Categories" })
+        console.error(error);
+        throw { name: "ErrorFetch", message: "Error Fetching Categories" };
     }
-}
+};
 
 const findOne = async (params) => {
     try {
