@@ -12,6 +12,8 @@ const findAll = async (params) => {
         if (role === 'User') {
             where.status = 'Active';
         }
+
+        const totalCount = await prisma.category.count({ where });
     
         const categories = await prisma.category.findMany({
             where,
@@ -22,8 +24,9 @@ const findAll = async (params) => {
         if (!categories) {
             throw { name: "ErrorNotFound", message: "Categories Not Found"};
         }
-    
-        return categories;    
+        
+        const totalPages = Math.ceil(totalCount / perPage);
+        return {categories, totalPages};    
     } catch (error) {
         throw ({ name: "ErrorFetch", message: "Error Fetching Categories" })
     }

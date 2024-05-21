@@ -11,6 +11,8 @@ const findAll = async (params) => {
         where.status = 'Active';
     }
 
+    const totalCount = await prisma.category.count({ where });
+
     const products = await prisma.product.findMany({
         where,
         skip: offset,
@@ -18,7 +20,9 @@ const findAll = async (params) => {
     });
 
     if (!products) throw { name: "ErrorNotFound", message: "Products Not Found" };
-    return products;
+
+    const totalPages = Math.ceil(totalCount / perPage);
+    return {products, totalPages};
 }
 
 const findOne = async (params) => {
