@@ -241,8 +241,13 @@ const update = async (params) => {
                 });
                 courier_name = courier_name.name
 
+                // Get store city_id
+                let store_city_id = await prisma.store.findFirst({
+                    select: { city_id: true }
+                });
+
                 // Get Shipping Cost
-                const shipping_cost_params = { city_id, total_weight, courier_name, shipping_method }
+                const shipping_cost_params = { city_id, total_weight, courier_name, shipping_method, store_city_id: store_city_id.city_id}
                 if (total_weight > 0) {
                     shipping_cost = await getShippingCost(shipping_cost_params);
                 }
@@ -346,19 +351,19 @@ const destroy = async (params) => {
 
 const getShippingCost = async (params) => {
     try {
-        const { city_id, total_weight, courier_name, shipping_method } = params;
+        const { city_id, total_weight, courier_name, shipping_method, store_city_id } = params;
 
         const response = await axios.post(
             'https://api.rajaongkir.com/starter/cost',
             {
-                origin: 501,
+                origin: store_city_id,
                 destination: city_id,
                 weight: total_weight,
                 courier: courier_name
             },
             {
                 headers: {
-                    key: process.env.RAJAONGKIR_API_KEY,
+                    key: process.env.RAJAONGKIR_SECRET_KEY,
                     'content-type': 'application/x-www-form-urlencoded'
                 }
             }

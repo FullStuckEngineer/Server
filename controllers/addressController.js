@@ -30,7 +30,7 @@ const findOne = async (req, res, next) => {
 
 const create = async (req, res, next) => {
     try {
-        const obj = { user_id: req.loggedUser.id, ...req.body }
+        const obj = { user_id: req.loggedUser.id, body: req.body }
         const newAddress = await addressService.create(obj)
         res.status(201).json({ 
             message: "New Address Added", 
