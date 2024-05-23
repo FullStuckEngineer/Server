@@ -39,12 +39,12 @@ const findAll = async (params) => {
 const findOne = async (params) => {
     try {
         const id = parseInt(params.id);
-        const filter = {
-            where:
-                { id: id }
-        };
+
         //check if city id exist
-        const city = await prisma.city.findUnique(filter);
+        const city = await prisma.city.findUnique({
+            where: { id: id }
+        });
+        
         if (!city) {
             throw { name: "CityNotFound" };
         }

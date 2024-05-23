@@ -20,8 +20,7 @@ const findOne = async (req, res, next) => {
     try {
         const params = req.params;
         const city = await cityService.findOne(params);
-        res.status(200).json(city)
-    }
+        res.status(200).json({message: "Success Get City", data: city});  }
     catch (error) {
         next(error)
     }
