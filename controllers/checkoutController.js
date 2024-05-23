@@ -47,7 +47,7 @@ const update = async (req, res, next) => {
 
 const pay = async (req, res, next) => {
     try {
-        const obj = { id: params.id, role: req.loggedUser.role, loggedUser: req.loggedUser.id  }
+        const obj = { id: req.params.id, role: req.loggedUser.role, loggedUser: req.loggedUser.id ,bank:req.body.bank }
         const createCheckout = await checkoutService.pay(obj)
         res.status(200).json(createCheckout)
     } catch (error) {
@@ -55,4 +55,17 @@ const pay = async (req, res, next) => {
     }
 }
 
-module.exports = { findAll, findOne, create, update, pay }
+const payNotification = async (req, res, next) => {
+    try {
+        
+    const obj = {body:req.body}
+    const createNotification = await checkoutService.payNotification(obj)
+    res.status(200).json(createNotification)
+
+    } catch (error) {
+            next(error)
+    }
+}
+
+module.exports = { findAll, findOne, create, update, pay , payNotification }
+ 
