@@ -171,22 +171,28 @@ const update = async (params) => {
 const destroy = async (params) => {
     const { user_id, id } = params;
     try {
+        console.log("Params ", params);
+        console.log("User ID ", user_id);
+        console.log("ID ", id);
+
         if (!id) {
             throw { name: "PleaseInputId", message: "Please provide an ID" };
         }
 
         let where = { id: parseInt(id) };
-        if (user_id !== '-999') {
+        if (user_id !== -999) {
             where.user_id = user_id;
         }
 
+        console.log("WHERE ", where);
         const address = await prisma.address.findUnique({ where });
+        console.log("ADDRESS ", address);
 
         if (!address) {
             throw { name: "ErrorNotFound", message: "Address Not Found" };
         }
 
-        if (user_id !== '-999' && address.user_id !== user_id) {
+        if (user_id !== -999 && address.user_id !== user_id) {
             throw { name: "Unauthorized", message: "You are not authorized to delete this address" };
         }
 
