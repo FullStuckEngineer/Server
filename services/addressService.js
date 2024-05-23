@@ -42,6 +42,7 @@ const findAll = async (params) => {
         const totalPages = Math.ceil(totalCount / perPage);
         return { addresses, totalPages };
     } catch (error) {
+        console.error("Error fetching addresses:", error);
         throw { name: "ErrorFetch", message: "Error Fetching Addresses" };
     }
 };

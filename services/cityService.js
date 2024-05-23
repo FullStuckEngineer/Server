@@ -38,7 +38,7 @@ const findAll = async (params) => {
 
 const findOne = async (params) => {
     try {
-        const id = parseInt(params);
+        const id = parseInt(params.id);
         const filter = {
             where:
                 { id: id }
