@@ -105,33 +105,36 @@ const update = async (params) => {
 
 const destroy = async (params) => {
     try{
-        const categoryId = parseInt(params.id);
+        await prisma.$transaction(async (prisma) => {
 
-        // Soft delete product
-        const products = await prisma.product.findMany({
-            where: {
-                category_id: categoryId
+            const categoryId = parseInt(params.id);
+
+            // Soft delete product
+            const products = await prisma.product.findMany({
+                where: {
+                    category_id: categoryId
+                }
+            });
+        
+            console.log(products);
+            if (products.length > 0) {
+                for (const product of products) {
+                    await productService.destroy({ id: product.id });
+                }
             }
-        });
-    
-        console.log(products);
-        if (products.length > 0) {
-            for (const product of products) {
-                await productService.destroy({ id: product.id });
-            }
-        }
-    
-        // Soft delete category
-        const category = await prisma.category.update({
-            where: {
-                id: categoryId
-            },
-            data: {
-                status: "Inactive"
-            }
-        })
-        if (!category) throw { name: "Failed to Soft Delete Category" };
-        return category;    
+        
+            // Soft delete category
+            const category = await prisma.category.update({
+                where: {
+                    id: categoryId
+                },
+                data: {
+                    status: "Inactive"
+                }
+            })
+            if (!category) throw { name: "Failed to Soft Delete Category" };
+            return category;   
+        }); 
     } catch (error) {
         throw ({ name: "ErrorDelete", message: "Failed to Delete Category" })
     }
