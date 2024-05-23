@@ -2,31 +2,51 @@ const prisma = require("../lib/prisma");
 
 const findAll = async (params) => {
     try {
-        const { page = 1, perPage = 10, userId = '', searchTerm = '', sortBy = '' } = params;
+        const { page = 1, perPage = 10, userId = '', cityId = '', searchTerm = '', sortBy = '' } = params;
+
+        console.log("page ", page);
+        console.log("perPage ", perPage);
+        console.log("userId ", userId);
+        console.log("city_id ", cityId);
+        console.log("searchTerm ", searchTerm);
+        console.log("sortBy ", sortBy);
   
         const offset = (page - 1) * perPage;
         const limit = perPage;
   
         let where = {};
-        if (userId && userId !== '-999') {
-            where.user_id = userId;
+        
+        if (userId && userId !== '-999' && !isNaN(parseInt(userId))) {
+            where.user_id = parseInt(userId);
+        }
+        if (cityId && !isNaN(parseInt(cityId))) {
+            where.city_id = parseInt(cityId);
         }
         if (searchTerm) {
-            where.OR = [
-                { name: { contains: searchTerm, mode: 'insensitive' } },
-                { user_id: { contains: searchTerm, mode: 'insensitive' } },
+            const searchConditions = [
                 { receiver_name: { contains: searchTerm, mode: 'insensitive' } },
                 { receiver_phone: { contains: searchTerm, mode: 'insensitive' } },
                 { detail_address: { contains: searchTerm, mode: 'insensitive' } },
-                { city_id: { contains: searchTerm, mode: 'insensitive' } },
                 { province: { contains: searchTerm, mode: 'insensitive' } },
-                { postal_code: { contains: searchTerm, mode: 'insensitive' } },
             ];
+            
+            if (!isNaN(parseInt(searchTerm))) {
+                searchConditions.push({ postal_code: { equals: parseInt(searchTerm) } })
+                searchConditions.push({ user_id: { equals: parseInt(searchTerm) } });
+                searchConditions.push({ city_id: { equals: parseInt(searchTerm) } });
+            }
+            
+            where.OR = searchConditions;
         }
+
+        console.log("WHERE ", where);
   
         const totalCount = await prisma.address.count({ where });
   
         const orderBy = sortBy ? { [sortBy]: 'asc' } : undefined;
+
+        console.log("WHERE ", where);
+        console.log("ORDER BY ", orderBy);
   
         const addresses = await prisma.address.findMany({
             where,

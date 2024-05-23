@@ -1,3 +1,4 @@
+const { city } = require('../../lib/prisma');
 const addressService = require('../../services/addressService')
 
 const perPage = 10;
@@ -9,8 +10,11 @@ const findAll = async (req, res, next) => {
             perPage: perPage,
             searchTerm: req.query.searchTerm,
             userId: req.query.userId,
+            cityId: req.query.cityId,
             sortBy: req.query.sortBy
         }
+
+        console.log("HEREEEEEEE params ", params);
 
         const addresses = await addressService.findAll(params)
         res.status(200).json({message: "Success Get All Addresses", data: addresses})
