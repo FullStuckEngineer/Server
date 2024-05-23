@@ -17,6 +17,8 @@ const findAll = async (params) => {
       if (searchTerm) {
           where.OR = [
               { name: { contains: searchTerm, mode: 'insensitive' } },
+              { email: { contains: searchTerm, mode: 'insensitive' } },
+              { role: { contains: searchTerm, mode: 'insensitive' } },
           ];
       }
 
