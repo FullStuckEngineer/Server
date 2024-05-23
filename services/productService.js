@@ -1,7 +1,15 @@
 const prisma = require("../lib/prisma");
 
 const findAll = async (params) => {
-    const { page = 1, perPage = 10, role = 'User' } = params;
+    const { page = 1, perPage = 10, role = 'User', searchTerms = '', categoryId = '', status = '', sortBy = '' } = params;
+
+    console.log("page ", page);
+    console.log("perPage ", perPage);
+    console.log("role ", role);
+    console.log("searchTerms ", searchTerms);
+    console.log("categoryId ", categoryId);
+    console.log("status ", status);
+    console.log("sortBy ", sortBy);
 
     const offset = (page - 1) * perPage;
     const limit = perPage;
@@ -9,20 +17,53 @@ const findAll = async (params) => {
     let where = {};
     if (role === 'User') {
         where.status = 'Active';
+    } else {
+        if (status) {
+            where.status = status;
+        }
     }
 
-    const totalCount = await prisma.category.count({ where });
+    if (categoryId) {
+        where.category_id = parseInt(categoryId);
+    }
+
+    if (searchTerms) {
+        const searchConditions = [
+            { name: { contains: searchTerms, mode: 'insensitive' } },
+            { sku: { contains: searchTerms, mode: 'insensitive' } },
+            { slug: { contains: searchTerms, mode: 'insensitive' } },
+            // { status: { contains: searchTerms, mode: 'insensitive' } }
+        ];
+        
+        if (!isNaN(parseInt(searchTerms))) {
+            searchConditions.push({ price: { equals: parseInt(searchTerms) } });
+            searchConditions.push({ weight: { equals: parseInt(searchTerms) } });
+            searchConditions.push({ category_id: { equals: parseInt(searchTerms) } });
+            searchConditions.push({ stock: { equals: parseInt(searchTerms) } });
+        }
+        
+        where.OR = searchConditions;
+    }
+
+    console.log("WHERE ", where);
+
+    const totalCount = await prisma.product.count({ where });
+
+    const orderBy = sortBy ? { [sortBy]: 'asc' } : undefined;
 
     const products = await prisma.product.findMany({
         where,
         skip: offset,
         take: limit,
+        orderBy,
     });
 
-    if (!products) throw { name: "ErrorNotFound", message: "Products Not Found" };
+    console.log("PRODUCTS ", products);
+
+    if (!products.length) throw { name: "ErrorNotFound", message: "Products Not Found" };
 
     const totalPages = Math.ceil(totalCount / perPage);
-    return {products, totalPages};
+    return { products, totalPages };
 }
 
 const findOne = async (params) => {
