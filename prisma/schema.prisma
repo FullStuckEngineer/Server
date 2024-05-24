@@ -20,6 +20,7 @@ model User {
   role         String
   password     String
   phone_number String?
+  photo        String?
   addresses    Address[]
   cart         Cart?
   checkouts    Checkout[]

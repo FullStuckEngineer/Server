@@ -1,11 +1,11 @@
 const productService = require('../services/productService');
 
-const perPage = 10;
+const perPage = 100;
 
 const findAll = async (req, res, next) => {
     try {
         params = {
-            page: req.query.page? parseInt(req.query.page) : 1,
+            page: req.query.page ? parseInt(req.query.page) : 1,
             perPage: perPage,
             role: 'User'
         }

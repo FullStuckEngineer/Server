@@ -22,8 +22,8 @@ const storeCmsRouter = require('./cms/storeRoute')
 const userCmsRouter = require('./cms/userRoute')
 
 const {authentication , authorization } = require("../middlewares/auth")
-
 router.use("/v1/api/auth", authRouter)
+router.use("/v1/api/products", productRouter)
 router.use(authentication)
 router.use("/v1/api/addresses", addressRouter)
 router.use("/v1/api/carts", cartRouter)
@@ -31,7 +31,6 @@ router.use("/v1/api/categories", categoryRouter)
 router.use("/v1/api/checkouts", checkoutRouter)
 router.use("/v1/api/cities", cityRouter)
 router.use("/v1/api/couriers", courierRouter)
-router.use("/v1/api/products", productRouter)
 router.use("/v1/api/stores", storeRouter)
 router.use("/v1/api/users", userRouter)
 

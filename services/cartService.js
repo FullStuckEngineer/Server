@@ -4,8 +4,8 @@ require("dotenv").config();
 
 const findOne = async (params) => {
     try {
-        console.log("PARAMS", params);
-        const id = Number(params.id);
+        console.log("PARAMS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", params);
+        // const id = Number(params.id);
         const logged_user_id = params.logged_user_id;
 
         // Check if user_id in cart_id and logged_user_id are the same
@@ -82,7 +82,7 @@ const update = async (params) => {
                     where: { id: Number(address_id) },
                     select: { user_id: true }
                 });
-
+                console.log(address_id_cart ,'<<<<<<<<<<<<<<<HERE>>>>>>>>>>>>>>>')
                 address_id_cart = address_id_cart.user_id;
                 if (user_id !== address_id_cart) {
                     throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
@@ -291,6 +291,7 @@ const update = async (params) => {
             return updateCart;
         });
     } catch (error) {
+        console.error(error)
         throw ({ name: "ErrorUpdate", message: "Failed to Update Cart" });
     }
 }

@@ -1,14 +1,33 @@
 const prisma = require("../lib/prisma");
 
+
+
 const findAll = async (params) => {
     try {
-        const cities = await prisma.city.findMany();
+        const cities = await prisma.city.findMany(params);
         return cities;
     } catch (error) {
         throw ({ name: "ErrorNotFound", message: "Cities Not Found" })
     }
 };
 
+const findAllWithLimit = async (params) => {
+    const { search = '', limit = 5 } = params;
+    try {
+        const cities = await prisma.city.findMany({
+            where: {
+                name: {
+                    contains: search,
+                    mode: 'insensitive'
+                }
+            },
+            take: Number(limit),
+        });
+        return cities;
+    } catch (error) {
+        throw ({ name: "ErrorNotFound", message: "Cities Not Found" })
+    }
+};
 
 const findOne = async (params) => {
     try {
@@ -28,4 +47,4 @@ const findOne = async (params) => {
     }
 };
 
-module.exports = { findAll, findOne };
+module.exports = { findAll, findOne, findAllWithLimit };

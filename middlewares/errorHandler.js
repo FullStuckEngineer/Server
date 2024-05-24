@@ -184,6 +184,10 @@ const errorHandler = (err, req, res, next) => {
             errorMessage = "Failed to Upload";
             res.status(404).json({ message: errorMessage });
             break;
+        case "PleaseInputId":
+            errorMessage = "Please Input ID";
+            res.status(404).json({ message: errorMessage });
+            break;
         // Default Error    
 
         default:
