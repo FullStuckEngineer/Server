@@ -323,6 +323,14 @@ const payNotification = async (params) => {
         gross_amount,
       }
 
+      await prisma.checkout.update({
+        where: {
+          id: +order_id,
+        },
+        data: {
+          midtrans_data: response,
+        },
+      })
       return { message: "Payment Succesfull", name: response }
     } else {
       return {
