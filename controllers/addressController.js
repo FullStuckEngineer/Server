@@ -2,7 +2,25 @@ const addressService = require('../services/addressService')
 
 const findAll = async (req, res, next) => {
     try {
-        const address = await addressService.findAll(req.loggedUser)
+        params = {
+            // page: req.query.page? parseInt(req.query.page) : 1,
+            // perPage: perPage,
+            // searchTerm: req.query.searchTerm,
+            userId: req.loggedUser.id,
+            // cityId: req.query.cityId,
+            // sortBy: req.query.sortBy
+        }
+
+        const address = await addressService.findAll(params)
+        res.status(200).json(address)
+    } catch (error) {
+        next(error)
+    }
+}
+
+const findAllNoLimit = async (req, res, next) => {
+    try {
+        const address = await addressService.findAllNoLimit(req.loggedUser)
         res.status(200).json(address)
     } catch (error) {
         next(error)
@@ -21,7 +39,7 @@ const findOne = async (req, res, next) => {
 
 const create = async (req, res, next) => {
     try {
-        const obj = { user_id: req.loggedUser.id, ...req.body }
+        const obj = { user_id: req.loggedUser.id, body: req.body }
         const newAddress = await addressService.create(obj)
         res.status(201).json({ 
             message: "New Address Added", 
@@ -52,5 +70,5 @@ const destroy = async (req, res, next) => {
     }
  }
 
-module.exports = { findAll, findOne, create, update, destroy }
+module.exports = { findAll, findAllNoLimit, findOne, create, update, destroy }
 

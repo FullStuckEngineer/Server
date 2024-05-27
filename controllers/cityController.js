@@ -1,5 +1,7 @@
 const cityService = require("../services/cityService");
 
+const perPage = 10;
+
 const findAll = async (req, res, next) => {
     try {
         const params = req.query;
@@ -10,10 +12,10 @@ const findAll = async (req, res, next) => {
     }
 };
 
-const findAllWithLimit = async (req, res, next) => {
+const findAllWithNoLimit = async (req, res, next) => {
     try {
         const params = req.query;
-        const cities = await cityService.findAllWithLimit(params);
+        const cities = await cityService.findAllWithNoLimit(params);
         res.status(200).json(cities);
     } catch (error) {
         next(error);
@@ -33,4 +35,4 @@ const findOne = async (req, res, next) => {
 
 
 
-module.exports = { findAll, findOne, findAllWithLimit };
+module.exports = { findAll, findOne, findAllWithNoLimit };

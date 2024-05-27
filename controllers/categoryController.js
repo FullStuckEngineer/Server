@@ -7,7 +7,10 @@ const findAll = async (req, res, next) => {
         params = {
             page: req.query.page? parseInt(req.query.page) : 1,
             perPage: perPage,
-            role: 'User'
+            role: 'User',
+            searchTerm: req.query.searchTerm,
+            status: req.query.status,
+            sortBy: req.query.sortBy
         }
 
         const categories = await categoryService.findAll(params);

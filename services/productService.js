@@ -1,7 +1,15 @@
 const prisma = require("../lib/prisma");
 
 const findAll = async (params) => {
-    const { page = 1, perPage = 10, role = 'User' } = params;
+    const { page = 1, perPage = 10, role = 'User', searchTerms = '', categoryId = '', status = '', sortBy = '' } = params;
+
+    console.log("page ", page);
+    console.log("perPage ", perPage);
+    console.log("role ", role);
+    console.log("searchTerms ", searchTerms);
+    console.log("categoryId ", categoryId);
+    console.log("status ", status);
+    console.log("sortBy ", sortBy);
 
     const offset = (page - 1) * perPage;
     const limit = perPage;
@@ -9,16 +17,53 @@ const findAll = async (params) => {
     let where = {};
     if (role === 'User') {
         where.status = 'Active';
+    } else {
+        if (status) {
+            where.status = status;
+        }
     }
+
+    if (categoryId) {
+        where.category_id = parseInt(categoryId);
+    }
+
+    if (searchTerms) {
+        const searchConditions = [
+            { name: { contains: searchTerms, mode: 'insensitive' } },
+            { sku: { contains: searchTerms, mode: 'insensitive' } },
+            { slug: { contains: searchTerms, mode: 'insensitive' } },
+            // { status: { contains: searchTerms, mode: 'insensitive' } }
+        ];
+        
+        if (!isNaN(parseInt(searchTerms))) {
+            searchConditions.push({ price: { equals: parseInt(searchTerms) } });
+            searchConditions.push({ weight: { equals: parseInt(searchTerms) } });
+            searchConditions.push({ category_id: { equals: parseInt(searchTerms) } });
+            searchConditions.push({ stock: { equals: parseInt(searchTerms) } });
+        }
+        
+        where.OR = searchConditions;
+    }
+
+    console.log("WHERE ", where);
+
+    const totalCount = await prisma.product.count({ where });
+
+    const orderBy = sortBy ? { [sortBy]: 'asc' } : undefined;
 
     const products = await prisma.product.findMany({
         where,
         skip: offset,
         take: limit,
+        orderBy,
     });
 
-    if (!products) throw { name: "ErrorNotFound", message: "Products Not Found" };
-    return products;
+    console.log("PRODUCTS ", products);
+
+    if (!products.length) throw { name: "ErrorNotFound", message: "Products Not Found" };
+
+    const totalPages = Math.ceil(totalCount / perPage);
+    return { products, totalPages };
 }
 
 const findOne = async (params) => {
@@ -50,7 +95,15 @@ const generateSlug = (name) => {
 const create = async (params) => {
     const { name, description, price, weight, category_id, stock, sku, keywords } = params;
 
-    const description_encoded = new TextEncoder().encode(description);
+    console.log("name ", name);
+    console.log("description ", description);
+    console.log("price ", price);
+    console.log("weight ", weight);
+    console.log("category_id ", category_id);
+    console.log("stock ", stock);
+    console.log("sku ", sku);
+    console.log("keywords ", keywords);
+    console.log("description ", description);
 
     if (stock < 0 || price < 0 || weight < 0) {
         throw { name: "MustPositive", message: "Stock, price, and weight cannot be negative" };
@@ -66,14 +119,13 @@ const create = async (params) => {
     });
 
     if (!category) {
-        throw { name: "CategoriesNotFound" };
         throw { name: "ErrorNotFound", message: "Category Not Found or Inactive" };
     }
 
     const product = await prisma.product.create({
         data: {
             name,
-            description: description_encoded,
+            description,
             price: parseInt(price),
             weight: parseFloat(weight),
             category_id: parseInt(category_id),

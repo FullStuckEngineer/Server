@@ -49,7 +49,10 @@ const create = async (params) => {
 
 const update = async (params) => {
     try {
-        const { id, body } = params
+        const { id, body } = params;
+        console.log("id ", id);
+        console.log("body ", body);
+
         const findStore = await prisma.store.findUnique({
             where: { id: Number(id) },
         })
@@ -58,12 +61,21 @@ const update = async (params) => {
             throw { name: "ErrorNotFound", message: "Store Not Found" }
         }
 
+        const dataToUpdate = {
+            name: body.name,
+            city_id: body.city_id,
+            province: body.province,
+            postal_code: body.postal_code,
+            bank_account_number: body.bank_account_number
+        }
+
         const updateStore = await prisma.store.update({
             where:
             {
                 id: Number(id)
             },
-            data: body 
+            data: dataToUpdate
+
         })
         return updateStore
     } catch (error) {
