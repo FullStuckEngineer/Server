@@ -497,8 +497,7 @@ const update = async (params) => {
   }
 }
 
-const sendEmail = async ({ to, subject, body }) => {
-  console.log("ENV PASS EMAIL", process.env.SENDER_EMAIL, process.env.SENDER_PASSWORD)
+const sendEmail = async ({ to, subject, html }) => {
   const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -511,11 +510,12 @@ const sendEmail = async ({ to, subject, body }) => {
       from: process.env.SENDER_EMAIL,
       to,
       subject,
-      text: body
+      html
   };
 
   await transporter.sendMail(mailOptions);
 };
+
 
 module.exports = {
 findAll,

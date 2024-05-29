@@ -58,8 +58,8 @@ const update = async (req, res, next) => {
 
 const sendEmailNotification = async (req, res, next) => {
     try {
-        const { to, subject, body } = req.body;
-        await checkoutService.sendEmail({ to, subject, body });
+        const { to, subject, html } = req.body;
+        await checkoutService.sendEmail({ to, subject, html });
         res.status(200).json({ message: "Email sent successfully" });
     } catch (error) {
         next(error);
