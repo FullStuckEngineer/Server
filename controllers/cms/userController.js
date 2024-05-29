@@ -53,4 +53,26 @@ const destroy = async (req, res, next) => {
     }
 } 
 
-module.exports = { findAll, findOne, update, destroy }
+const uploadImage = async (req, res, next) => {
+    try {
+      const filePath = req.file.path;
+      const userId = req.body.id;
+      const uploadImage = await userService.uploadImage({ userId, filePath });
+      res.status(200).json({ message: "Image Uploaded", data: uploadImage });
+    } catch (err) {
+      next(err);
+    }
+  }
+  
+const deletePhoto = async (req, res, next) => {
+    try {
+        const userId = req.loggedUser.id;
+        const deletePhoto = await userService.deletePhoto({ userId });
+        res.status(200).json({ message: "Photo Deleted", data: deletePhoto });
+    } catch (err) {
+        next(err);
+    }
+}
+  
+
+module.exports = { findAll, findOne, update, destroy, uploadImage, deletePhoto }

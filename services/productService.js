@@ -147,6 +147,9 @@ const create = async (params) => {
 const uploadImage = async (params) => {
     const { productId, filePath } = params;
 
+    if (!productId) throw { name: "ErrorUpload", message: "Product ID is Required" };
+    if (!filePath) throw { name: "ErrorUpload", message: "File Path is Required" };
+
     const product = await prisma.product.update({
         where: {
             id: parseInt(productId)
@@ -182,6 +185,8 @@ const update = async (params) => {
                     throw { name: "ErrorNotFound", message: "Category Not Found or Inactive" };
                 }
             }
+
+            console.log("HHERE");
 
             // If stock < shopping_items.quantity, destroy shopping item
             if (shopping_items) {
@@ -232,7 +237,11 @@ const update = async (params) => {
             return product;
         });
     } catch (error) {
-        throw ({ name: "ErrorUpdate", message: "Failed to Update Product" })
+        if (error.name && error.message) {
+            throw error;
+        } else {
+            throw { name: "ErrorUpdate", message: "Failed to Update Product" };
+        }
     }
 }
 
@@ -264,7 +273,11 @@ const destroy = async (params) => {
             return product;
         });
     } catch (error) {
-        throw ({ name: "ErrorDelete", message: "Failed to Delete Product" })
+        if (error.name && error.message) {
+            throw error;
+        } else {
+            throw { name: "ErrorDelete", message: "Failed to Delete Product" }
+        }
     }
 }
 

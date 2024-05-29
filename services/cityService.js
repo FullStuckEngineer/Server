@@ -1,24 +1,35 @@
 const prisma = require("../lib/prisma");
 
 const findAll = async (params) => {
-    const { search = '', limit } = params;
     try {
-        const queryOptions = {
-            where: {
-                name: {
-                    contains: search,
-                    mode: 'insensitive'
-                }
-            },
-        };
+        const { page = 1, perPage = 10, searchTerm = ''} = params;
 
-        // Jika limit disertakan dan valid, tambahkan opsi limit ke query
-        if (limit && !isNaN(limit)) {
-            queryOptions.take = Number(limit);
+        let where = {};
+        if (searchTerm){
+            const searchConditions = [
+                { name: { contains: searchTerm, mode: 'insensitive' } }
+            ];
+
+            where.OR = searchConditions;
         }
 
-        const cities = await prisma.city.findMany(queryOptions);
-        return cities;
+        const offset = (page - 1) * perPage;
+        const limit = parseInt(perPage);
+
+        const totalCount = await prisma.city.count({ where });
+        const cities = await prisma.city.findMany({
+            where,
+            skip: offset,
+            take: limit            
+        });
+
+        if (!cities.length || cities.length === 0) {
+            throw { name: "ErrorNotFound" };
+        }
+
+        const totalPages = Math.ceil(totalCount / perPage);
+
+        return { cities, totalPages };
     } catch (error) {
         throw ({ name: "ErrorNotFound", message: "Cities Not Found" });
     }
