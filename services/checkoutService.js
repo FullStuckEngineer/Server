@@ -90,6 +90,13 @@ const findOne = async (params) => {
         where: {
           id: parseInt(id),
         },
+        include: {
+          checkout_products: {
+            include: {
+              product: true,
+            },
+          },
+        },
       })
 
       if (!checkout) {
@@ -100,6 +107,13 @@ const findOne = async (params) => {
       const checkout = await prisma.checkout.findUnique({
         where: {
           id: parseInt(id),
+        },
+        include: {
+          checkout_products: {
+            include: {
+              product: true,
+            },
+          },
         },
       })
 
@@ -123,6 +137,7 @@ const findOne = async (params) => {
     }
   }
 }
+
 
 const create = async (params) => {
   try {
