@@ -41,7 +41,7 @@ const findAll = async (params) => {
       return { users, totalPages };
   } catch (error) {
       console.error(error);
-      throw { name: "ErrorFetch", message: "Error Fetching Users" };
+      throw { name: "ErrorNotFound", message: "Users Not Found" };
   }
 };
 
@@ -60,7 +60,7 @@ const findOne = async (params) => {
 
     return user;
   } catch (error) {
-    throw ({ name: "ErrorFetch", message: "Error Fetching User" })
+    throw ({ name: "ErrorNotFound", message: "User Not Found" })
   }
 };
 
@@ -109,7 +109,11 @@ const update = async (params) => {
       throw { name: "NoFieldsToUpdate", message: "No fields to update" };
     }
   } catch (error) {
-    throw { name: "ErrorUpdate", message: error.message || "Error updating user" };
+    if (error.name && error.message) {
+        throw error;
+    } else {
+        throw { name: "ErrorUpdate", message: error.message || "Error updating user" };
+    }
   }
 };
 
@@ -205,7 +209,11 @@ const destroy = async (params) => {
       return deleteUser;
     });
   } catch (error) {
-    throw ({ name: "ErrorDelete", message: "Failed to Delete User" })
+    if (error.name && error.message) {
+        throw error;
+    } else {
+        throw { name: "ErrorDelete", message: "Failed to Delete User" }
+    }
   }
 };
 

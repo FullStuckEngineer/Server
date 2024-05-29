@@ -44,7 +44,11 @@ const findAll = async (params) => {
       throw { name: "ErrorNotFound", message: "Role Not Found" }
     }
   } catch (error) {
-    throw { name: "ErrorNotFound", message: "Checkouts Not Found" }
+    if (error.name && error.message) {
+        throw error;
+    } else {
+        throw { name: "ErrorNotFound", message: "Checkouts Not Found" }
+    }
   }
 }
 
@@ -83,7 +87,11 @@ const findOne = async (params) => {
       throw { name: "Unauthorized", message: "Role Not Found" }
     }
   } catch (error) {
-    throw { name: "ErrorNotFound", message: "Checkout Not Found" }
+    if (error.name && error.message) {
+        throw error;
+    } else {
+        throw { name: "ErrorNotFound", message: "Checkout Not Found" }
+    }
   }
 }
 
@@ -214,7 +222,11 @@ const create = async (params) => {
       return checkout
     })
   } catch (error) {
-    throw { name: "ErrorCreate", message: "Failed to Create Checkout" }
+    if (error.name && error.message) {
+        throw error;
+    } else {
+        throw { name: "ErrorCreate", message: "Failed to Create Checkout" }
+    }
   }
 }
 
@@ -432,7 +444,11 @@ const update = async (params) => {
       throw { name: "Unauthorized", message: "Role Not Found" }
     }
   } catch (error) {
-    throw { name: "ErrorUpdate", message: "Failed to Update Checkout" }
+    if (error.name && error.message) {
+        throw error;
+    } else {
+        throw { name: "ErrorUpdate", message: "Failed to Update Checkout" }
+    }
   }
 }
 

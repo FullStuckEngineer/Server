@@ -29,8 +29,7 @@ const findAll = async (params) => {
     const totalPages = Math.ceil(totalCount / perPage);
     return { couriers, totalPages };
   } catch (error) {
-      console.error(error);
-      throw { name: "ErrorFetch", message: "Error Fetching Couriers" };
+      throw error;
   }
 };
 

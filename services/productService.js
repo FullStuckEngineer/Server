@@ -183,6 +183,8 @@ const update = async (params) => {
                 }
             }
 
+            console.log("HHERE");
+
             // If stock < shopping_items.quantity, destroy shopping item
             if (shopping_items) {
                 for (let i = 0; i < shopping_items.length; i++) {
@@ -232,7 +234,11 @@ const update = async (params) => {
             return product;
         });
     } catch (error) {
-        throw ({ name: "ErrorUpdate", message: "Failed to Update Product" })
+        if (error.name && error.message) {
+            throw error;
+        } else {
+            throw { name: "ErrorUpdate", message: "Failed to Update Product" };
+        }
     }
 }
 
@@ -264,7 +270,11 @@ const destroy = async (params) => {
             return product;
         });
     } catch (error) {
-        throw ({ name: "ErrorDelete", message: "Failed to Delete Product" })
+        if (error.name && error.message) {
+            throw error;
+        } else {
+            throw { name: "ErrorDelete", message: "Failed to Delete Product" }
+        }
     }
 }
 

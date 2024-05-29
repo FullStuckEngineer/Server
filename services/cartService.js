@@ -4,7 +4,6 @@ require("dotenv").config();
 
 const findOne = async (params) => {
     try {
-        console.log("PARAMS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", params);
         // const id = Number(params.id);
         const logged_user_id = params.logged_user_id;
 
@@ -22,7 +21,11 @@ const findOne = async (params) => {
 
         return cart
     } catch (error) {
-        throw ({ name: "ErrorFetch", message: "Error Fetching Carts" })
+        if (error.name && error.message) {
+            throw error;
+        } else {
+            throw { name: "ErrorFetch", message: "Error Fetching Carts" }
+        }
     }
 }
 
@@ -296,8 +299,11 @@ const findOne = async (params) => {
                 return updateCart;
             });
         } catch (error) {
-            console.error(error)
-            throw ({ name: "ErrorUpdate", message: "Failed to Update Cart" });
+            if (error.name && error.message) {
+                throw error;
+            } else {
+                throw { name: "ErrorUpdate", message: "Failed to Update Cart" };
+            }
         }
     }
 
@@ -346,7 +352,11 @@ const destroy = async (params) => {
 
         return updatedCart;
     } catch (error) {
-        throw { name: "ErrorDelete", message: "Failed to Delete Shopping Item in Cart"};
+        if (error.name && error.message) {
+            throw error;
+        } else {
+            throw { name: "ErrorDelete", message: "Failed to Delete Shopping Item in Cart"};
+        }
     }
 };
 
@@ -384,8 +394,11 @@ const getShippingCost = async (params) => {
             return shipping_cost.cost[0].value;
         }
     } catch (error) {
-        console.error('Error fetching shipping cost:', error.message);
-        throw ({ name: "ErrorFetch", message: "Error Fetching Shipping Cost" });
+        if (error.name && error.message) {
+            throw error;
+        } else {
+            throw { name: "ErrorFetch", message: "Error Fetching Shipping Cost" };
+        }
     }
 };
 
