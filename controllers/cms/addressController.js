@@ -1,4 +1,3 @@
-const { city } = require('../../lib/prisma');
 const addressService = require('../../services/addressService')
 
 const perPage = 10;

@@ -31,7 +31,7 @@ const findAll = async (params) => {
 
         return { cities, totalPages };
     } catch (error) {
-        throw ({ name: "ErrorNotFound", message: "Cities Not Found" })
+        throw ({ name: "ErrorNotFound", message: "Cities Not Found" });
     }
 };
 

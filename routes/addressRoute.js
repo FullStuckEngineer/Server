@@ -2,7 +2,6 @@ const router = require('express').Router()
 const addressController = require("../controllers/addressController")
 
 router.get("/", addressController.findAll)
-router.get("/nolimit", addressController.findAllNoLimit)
 router.get("/:id", addressController.findOne)
 router.post("/", addressController.create)
 router.put("/:id", addressController.update)
