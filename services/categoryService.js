@@ -39,8 +39,11 @@ const findAll = async (params) => {
         const totalPages = Math.ceil(totalCount / perPage);
         return { categories, totalPages };
     } catch (error) {
-        console.error(error);
-        throw { name: "ErrorFetch", message: "Error Fetching Categories" };
+        if (error.name && error.message) {
+            throw error;
+        } else {
+            throw { name: "ErrorFetch", message: "Error Fetching Categories" };
+        }
     }
 };
 
@@ -63,7 +66,11 @@ const findOne = async (params) => {
     
         return category;    
     } catch (error) {
-        throw ({ name: "ErrorFetch", message: "Error Fetching Category" })
+        if (error.name && error.message) {
+            throw error;
+        } else {
+            throw { name: "ErrorFetch", message: "Error Fetching Category" }
+        }
     }
 } 
 
@@ -80,7 +87,11 @@ const create = async (params) => {
         if (!category) throw { name: "ErrorCreate", message: "Failed to Create Category"};
         return category;    
     } catch (error) {
-        throw ({ name: "ErrorCreate", message: "Failed to Create Category" })
+        if (error.name && error.message) {
+            throw error;
+        } else {
+            throw { name: "ErrorCreate", message: "Failed to Create Category" }
+        }
     }
 } 
 
@@ -99,7 +110,11 @@ const update = async (params) => {
         if (!category) throw { name: "Failed to Update Category" };
         return category;    
     } catch (error) {
-        throw ({ name: "ErrorUpdate", message: "Failed to Update Category" })
+        if (error.name && error.message) {
+            throw error;
+        } else {
+            throw { name: "ErrorUpdate", message: "Failed to Update Category" }
+        }
     }
 } 
 
@@ -136,7 +151,11 @@ const destroy = async (params) => {
             return category;   
         }); 
     } catch (error) {
-        throw ({ name: "ErrorDelete", message: "Failed to Delete Category" })
+        if (error.name && error.message) {
+            throw error;
+        } else {
+            throw { name: "ErrorDelete", message: "Failed to Delete Category" }
+        }
     }
 } 
 

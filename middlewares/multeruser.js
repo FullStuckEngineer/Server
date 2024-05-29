@@ -2,16 +2,16 @@ const multer = require("multer")
 const path = require("path")
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../assets/uplouds"))
+  destination: function (req, file, cb) {
+      cb(null, './assets/users/');
   },
-  filename: (req, file, cb) => {
-    const randomFileName = file.fieldname + "-" + Date.now() + path.extname(file.originalname)
-    cb(null, randomFileName)
-  },
-})
+  filename: function (req, file, cb) {
+      const fileName = file.originalname.toLowerCase().split(' ').join('-');
+      cb(null, Date.now() + '-' + fileName);
+  }
+});
 
-const maxSize = 1 * 1024 * 1024 // 1MB
+const maxSize = 1 * 1024 * 1024
 const upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {

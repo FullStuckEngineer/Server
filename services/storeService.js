@@ -5,7 +5,7 @@ const findAll = async (params) => {
         const getAll = await prisma.store.findMany()
         return getAll
     } catch (error) {
-        throw ({ name: "ErrorFetch", message: "Error Fetching Stores" })
+        throw ({ name: "ErrorNotFound", message: "Stores Not Found" })
     }
 }
 
@@ -21,7 +21,7 @@ const findOne = async (params) => {
             return getOne
         }
     } catch (error) {
-        throw ({ name: "ErrorFetch", message: "Error Fetching Store" })
+        throw ({ name: "ErrorNotFound", message: "Store Not Found" })
     }
 }
 
@@ -43,7 +43,11 @@ const create = async (params) => {
         })
         return createStore
     } catch (error) {
-        throw ({ name: "ErrorCreate", message: "Failed to Create Store" })
+        if (error.name) {
+            throw error;
+        } else {
+            throw { name: "ErrorCreate", message: "Failed to Create Store" }
+        }
     }
 }
 
@@ -79,7 +83,11 @@ const update = async (params) => {
         })
         return updateStore
     } catch (error) {
-        throw ({ name: "ErrorUpdate", message: "Failed to Update Store" })
+        if (error.name && error.message) {
+            throw error;
+        } else {
+            throw { name: "ErrorUpdate", message: "Failed to Update Store" }
+        }
     }
 }
 
@@ -105,7 +113,11 @@ const destroy = async (params) => {
         }
         return deleteStore
     } catch (error) {
-        throw ({ name: "ErrorDelete", message: "Failed to Delete Store" })
+        if (error.name && error.message) {
+            throw error;
+        } else {
+            throw { name: "ErrorDelete", message: "Failed to Delete Store" }
+        }
     }
 }
 
