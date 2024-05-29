@@ -147,6 +147,9 @@ const create = async (params) => {
 const uploadImage = async (params) => {
     const { productId, filePath } = params;
 
+    if (!productId) throw { name: "ErrorUpload", message: "Product ID is Required" };
+    if (!filePath) throw { name: "ErrorUpload", message: "File Path is Required" };
+
     const product = await prisma.product.update({
         where: {
             id: parseInt(productId)
