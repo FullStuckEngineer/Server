@@ -4,53 +4,82 @@ const axios = require("axios")
 
 const findAll = async (params) => {
   try {
-    const { courier, order_id, user, role, loggedUser, currentPage = 1, perPage = 10 } = params
-    let where = {}
-    if (courier) {
-      where.courier = courier
+    const {
+      page = 1,
+      perPage = 10,
+      role = 'Admin',
+      searchTerms = '',
+      userId = '',
+      courierId = '',
+      paymentMethod = '',
+      status = '',
+      sortBy = '',
+    } = params;
+
+    let where = {};
+
+    if (courierId) {
+      where.courier_id = parseInt(courierId);
     }
-    if (user) {
-      where.user = user
+    if (userId) {
+      where.user_id = parseInt(userId);
+    }
+    if (status) {
+      where.status = status;
+    }
+    if (paymentMethod) {
+      where.payment_method = paymentMethod;
     }
 
-    const offset = (currentPage - 1) * perPage
-    const limit = perPage
+    if (searchTerms) {
+      const searchConditions = [
+        { payment_method: { contains: searchTerms, mode: 'insensitive' } },
+        { bank: { contains: searchTerms, mode: 'insensitive' } },
+        { status: { contains: searchTerms, mode: 'insensitive' } },
+      ];
 
-    if (role === "admin") {
-      const checkout = await prisma.checkout.findMany({
-        where,
-        skip: offset,
-        take: limit,
-      })
-
-      if (!checkout) {
-        throw { name: "ErrorNotFound", message: "Checkout List Not Found" }
+      if (!isNaN(parseInt(searchTerms))) {
+        searchConditions.push({ net_price: { equals: parseInt(searchTerms) } });
       }
-      return checkout
-    } else if (role === "user") {
-      where.user_id = loggedUser
 
-      const checkout = await prisma.checkout.findMany({
-        where,
-        skip: offset,
-        take: limit,
-      })
-
-      if (!checkout) {
-        throw { name: "ErrorNotFound", message: "Checkout List Not Found" }
-      }
-      return checkout
-    } else {
-      throw { name: "ErrorNotFound", message: "Role Not Found" }
+      where.OR = searchConditions;
     }
+
+    if (role === "User") {
+      where.user_id = loggedUser;
+    }
+
+    const offset = (page - 1) * perPage;
+    const limit = parseInt(perPage);
+
+    const totalCount = await prisma.checkout.count({ where });
+
+    const orderBy = sortBy ? { [sortBy]: 'asc' } : undefined;
+
+    const checkouts = await prisma.checkout.findMany({
+      where,
+      skip: offset,
+      take: limit,
+      orderBy,
+    });
+
+    if (!checkouts || checkouts.length === 0) {
+      throw { name: "ErrorNotFound", message: "Checkout List Not Found" };
+    }
+
+    const totalPages = Math.ceil(totalCount / perPage);
+
+    return { checkouts, totalPages };
+
   } catch (error) {
     if (error.name && error.message) {
         throw error;
     } else {
-        throw { name: "ErrorNotFound", message: "Checkouts Not Found" }
+        throw { name: "ErrorNotFound", message: "Checkouts Not Found" };
     }
   }
-}
+};
+
 
 const findOne = async (params) => {
   try {

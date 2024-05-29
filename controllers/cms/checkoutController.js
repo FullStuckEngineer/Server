@@ -1,8 +1,20 @@
 const checkoutService = require('../../services/checkoutService')
 
+const perPage = 10;
+
 const findAll = async (req, res, next) => {
     try {
-        const params = { courier: req.query.courier, order_id: req.query.order_id, user: req.query.user, role: "admin", loggedUser: req.loggedUser.id, currentPage: req.query.currentPage, perPage: req.query.perPage}
+        params = {
+            page: req.query.page? parseInt(req.query.page) : 1,
+            perPage: perPage,
+            role: 'Admin',
+            searchTerms: req.query.searchTerms,
+            userId: req.query.userId,
+            courierId: req.query.categoryId,
+            paymentMethod: req.query.paymentMethod,
+            status: req.query.status,
+            sortBy: req.query.sortBy
+        }
 
         const findAll = await checkoutService.findAll(params);
         res.status(200).json({message: "Success Get All Checkout", data: findAll})
@@ -10,7 +22,7 @@ const findAll = async (req, res, next) => {
     catch (error) {
         next(error);
     }
-} 
+}
 
 const findOne = async (req, res, next) => {
     try {
