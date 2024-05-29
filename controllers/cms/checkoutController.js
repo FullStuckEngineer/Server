@@ -10,7 +10,7 @@ const findAll = async (req, res, next) => {
             role: 'Admin',
             searchTerms: req.query.searchTerms,
             userId: req.query.userId,
-            courierId: req.query.categoryId,
+            courierId: req.query.courierId,
             paymentMethod: req.query.paymentMethod,
             status: req.query.status,
             sortBy: req.query.sortBy
