@@ -22,6 +22,7 @@ const courierCmsRouter = require("./cms/courierRoute")
 const productCmsRouter = require("./cms/productRoute")
 const storeCmsRouter = require("./cms/storeRoute")
 const userCmsRouter = require("./cms/userRoute")
+const dashboardCmsRouter = require("./cms/dashboardRoute")
 
 router.use("/v1/api/payment_receipt/", express.static(path.join(__dirname, "../assets/uplouds/")))
 
@@ -48,5 +49,6 @@ router.use("/v1/api/cms/couriers", courierCmsRouter)
 router.use("/v1/api/cms/products", productCmsRouter)
 router.use("/v1/api/cms/stores", storeCmsRouter)
 router.use("/v1/api/cms/users", userCmsRouter)
+router.use("/v1/api/cms/dashboard", dashboardCmsRouter)
 
 module.exports = router
