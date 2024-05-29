@@ -1,20 +1,26 @@
 const prisma = require("../lib/prisma");
 
 const findAll = async (params) => {
-    const { search = '', limit = 5 } = params;
+    const { search = '', limit } = params;
     try {
-        const cities = await prisma.city.findMany({
+        const queryOptions = {
             where: {
                 name: {
                     contains: search,
                     mode: 'insensitive'
                 }
             },
-            take: Number(limit),
-        });
+        };
+
+        // Jika limit disertakan dan valid, tambahkan opsi limit ke query
+        if (limit && !isNaN(limit)) {
+            queryOptions.take = Number(limit);
+        }
+
+        const cities = await prisma.city.findMany(queryOptions);
         return cities;
     } catch (error) {
-        throw ({ name: "ErrorNotFound", message: "Cities Not Found" })
+        throw ({ name: "ErrorNotFound", message: "Cities Not Found" });
     }
 };
 
