@@ -14,6 +14,7 @@ const findAll = async (params) => {
       paymentMethod = '',
       status = '',
       sortBy = '',
+      loggedUser = ''
     } = params;
 
     let where = {};
@@ -79,7 +80,6 @@ const findAll = async (params) => {
     }
   }
 };
-
 
 const findOne = async (params) => {
   try {
