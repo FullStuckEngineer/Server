@@ -56,4 +56,14 @@ const update = async (req, res, next) => {
     }
 } 
 
-module.exports = { findAll, findOne, create, update }
+const sendEmailNotification = async (req, res, next) => {
+    try {
+        const { to, subject, body } = req.body;
+        await checkoutService.sendEmail({ to, subject, body });
+        res.status(200).json({ message: "Email sent successfully" });
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports = { findAll, findOne, create, update, sendEmailNotification };

@@ -1,6 +1,7 @@
 const { check } = require("prisma")
 const prisma = require("../lib/prisma")
 const axios = require("axios")
+const nodemailer = require('nodemailer');
 
 const findAll = async (params) => {
   try {
@@ -496,12 +497,33 @@ const update = async (params) => {
   }
 }
 
+const sendEmail = async ({ to, subject, body }) => {
+  console.log("ENV PASS EMAIL", process.env.SENDER_EMAIL, process.env.SENDER_PASSWORD)
+  const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+          user: process.env.SENDER_EMAIL,
+          pass: process.env.SENDER_PASSWORD
+      }
+  });
+
+  const mailOptions = {
+      from: process.env.SENDER_EMAIL,
+      to,
+      subject,
+      text: body
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
 module.exports = {
-  findAll,
-  findOne,
-  create,
-  pay,
-  update,
-  payNotification,
-  payManual,
-}
+findAll,
+findOne,
+create,
+pay,
+update,
+payNotification,
+payManual,
+sendEmail
+};
