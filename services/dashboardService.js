@@ -3,7 +3,19 @@ const prisma = new PrismaClient();
 
 const fetchDashboardData = async () => {
     const totalUsers = await prisma.user.count();
-    const totalProducts = await prisma.product.count();
+    const totalProductsActive = await prisma.product.count({
+        where: {
+            status: 'Active'
+        }
+    });
+    const totalProductsInactive = await prisma.product.count({
+        where: {
+            status: 'Inactive'
+        }
+    });
+
+    console.log("Total Products Active", totalProductsActive);
+    console.log("Total Products Inactive", totalProductsInactive);
     const totalOrders = await prisma.checkout.count();
     const totalRevenue = await prisma.checkout.aggregate({
         _sum: {
@@ -48,7 +60,10 @@ const fetchDashboardData = async () => {
 
     return {
         totalUsers,
-        totalProducts,
+        totalProducts: {
+            active: totalProductsActive,
+            inactive: totalProductsInactive
+        },
         totalOrders,
         totalRevenue: totalRevenue._sum.net_price,
         ordersByStatus,
