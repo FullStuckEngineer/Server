@@ -91,7 +91,7 @@ const payManual = async (req, res, next) => {
     const obj = { loggedUser: req.loggedUser, body: req.file, params: req.params }
     const url = await checkoutService.payManual(obj)
     res.status(201).json({
-      message: "Upload Succes",
+      message: "Uploud Receipt Success, Wait for the Admin to Confirm Your Order",
       image_url: url,
     })
   } catch (error) {

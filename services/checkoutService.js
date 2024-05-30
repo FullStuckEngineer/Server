@@ -1,4 +1,3 @@
-const { check } = require("prisma")
 const prisma = require("../lib/prisma")
 const axios = require("axios")
 
@@ -278,6 +277,15 @@ const pay = async (params) => {
           },
         }
       )
+      await prisma.checkout.update({
+        where: {
+          id: +id,
+        },
+        data: {
+          midtrans_data: post.data,
+        },
+      })
+
 
       if (+post.data.status_code === 201) {
         return {
@@ -352,9 +360,8 @@ const payManual = async (params) => {
     if (!checkout) {
       throw { name: "ErrorNotFound", message: "Please Select Your Order" }
     }
-    console.log(checkout)
     if (loggedUser) {
-      const filename = body.filename
+      const filename = body
       if (params) {
         const url = `${process.env.BASE_URL}/v1/api/payment_receipt/${filename}`
 
@@ -367,7 +374,7 @@ const payManual = async (params) => {
           },
         })
 
-        return url
+        return  url  
       } else {
         throw { name: "MissingFile" }
       }
