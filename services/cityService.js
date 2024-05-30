@@ -35,6 +35,24 @@ const findAll = async (params) => {
     }
 };
 
+const findAllWithLimit = async (params) => {
+  const { search = "", limit = 5 } = params;
+  try {
+    const cities = await prisma.city.findMany({
+      where: {
+        name: {
+          contains: search,
+          mode: "insensitive",
+        },
+      },
+      take: Number(limit),
+    });
+    return cities;
+  } catch (error) {
+    throw { name: "ErrorNotFound", message: "Cities Not Found" };
+  }
+};
+
 const findAllWithNoLimit = async (params) => {
     try {
         const cities = await prisma.city.findMany(params);
@@ -62,4 +80,4 @@ const findOne = async (params) => {
     }
 };
 
-module.exports = { findAll, findOne, findAllWithNoLimit };
+module.exports = { findAll, findOne, findAllWithNoLimit, findAllWithLimit };
