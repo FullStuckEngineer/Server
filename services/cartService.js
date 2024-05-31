@@ -11,7 +11,7 @@ const findOne = async (params) => {
         // Check if user_id in cart_id and logged_user_id are the same
         // and display shopping_item based on user cart
         const cart = await prisma.cart.findUnique({
-            where: { user_id: logged_user_id },
+            where: { user_id: logged_user_id }, 
             include: { shopping_items: true }
 
         });
@@ -31,22 +31,11 @@ const update = async (params) => {
     try {
         await prisma.$transaction(async (prisma) => {
             const { user_id, id, body } = params
-const update = async (params) => {
-    try {
-        await prisma.$transaction(async (prisma) => {
-            const { user_id, id, body } = params
 
-            const { address_id: paramAddressId, courier_id: paramCourierId, shipping_method: paramShippingMethod, shopping_items: paramShoppingItem } = body;
             const { address_id: paramAddressId, courier_id: paramCourierId, shipping_method: paramShippingMethod, shopping_items: paramShoppingItem } = body;
 
             if (!id) throw ({ name: "ErrorRequired", message: "Cart ID is required" });
-            if (!id) throw ({ name: "ErrorRequired", message: "Cart ID is required" });
 
-            // Get current cart data
-            let currentCart = await prisma.cart.findUnique({
-                where: { user_id: Number(user_id) },
-                select: { id: true, user_id: true, address_id: true, courier_id: true, shipping_method: true, shopping_items: true }
-            });
             // Get current cart data
             let currentCart = await prisma.cart.findUnique({
                 where: { user_id: Number(user_id) },
@@ -79,17 +68,7 @@ const update = async (params) => {
                 // Check if user_id and logged_user_id are the same
                 let user_id_cart = await prisma.cart.findUnique({
                     where: { user_id: Number(user_id) },
-            if (user_id !== undefined) {
-                // Check if user_id and logged_user_id are the same
-                let user_id_cart = await prisma.cart.findUnique({
-                    where: { user_id: Number(user_id) },
 
-                });
-                user_id_cart = user_id_cart.user_id;
-                if (user_id !== user_id_cart) {
-                    throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
-                }
-            }
                 });
                 user_id_cart = user_id_cart.user_id;
                 if (user_id !== user_id_cart) {
@@ -266,14 +245,14 @@ const update = async (params) => {
                 let store_city_id = await prisma.store.findFirst({
                     select: { city_id: true }
                 });
+
                 // Get Shipping Cost
-                console.log(city_id, "<<<<<<<<< CITY ID")
-                const shipping_cost_params = { city_id, total_weight, courier_name, shipping_method, store_city_id: store_city_id.city_id }
+                const shipping_cost_params = { city_id, total_weight, courier_name, shipping_method, store_city_id: store_city_id.city_id}
                 if (total_weight > 0) {
                     shipping_cost = await getShippingCost(shipping_cost_params);
                 }
 
-                // Calculate net price = total cost + shipping cost 
+                // Calculate net price = total cost + shipping cost
                 net_price = total_cost + shipping_cost;
             } else {
                 address_id = null;
@@ -314,21 +293,21 @@ const update = async (params) => {
                 throw ({ name: "ErrorUpdate", message: "Failed to Update Cart" });
             }
 
-            return updateCart;
-        });
-    } catch (error) {
-        if (error.name && error.message) {
-            throw error;
-        } else {
-            throw { name: "ErrorUpdate", message: "Failed to Update Cart" };
+                return updateCart;
+            });
+        } catch (error) {
+            if (error.name && error.message) {
+                throw error;
+            } else {
+                throw { name: "ErrorUpdate", message: "Failed to Update Cart" };
+            }
         }
     }
-}
 
 const destroy = async (params) => {
     try {
         const { user_id, idShoppingItem } = params;
-
+        
         // Get cart by user_id
         const cart = await prisma.cart.findUnique({
             where: {
@@ -374,62 +353,15 @@ const destroy = async (params) => {
         if (error.name && error.message) {
             throw error;
         } else {
-            throw { name: "ErrorDelete", message: "Failed to Delete Shopping Item in Cart" };
+            throw { name: "ErrorDelete", message: "Failed to Delete Shopping Item in Cart"};
         }
     }
 };
 
-//make func to delete all shopping_items in cart
-
-const destroyAll = async (params) => {
-    try {
-      const { user_id } = params;
-      const cart = await prisma.cart.findUnique({
-        where: {
-          user_id: Number(user_id),
-        },
-        include: {
-          shopping_items: true,
-        },
-      });
-  
-      if (!cart) {
-        throw { name: "ErrorNotFound", message: "Cart Not Found" };
-      }
-  
-      if (!cart.shopping_items.length) {
-        throw { name: "ErrorNotFound", message: "Shopping Items Not Found" };
-      }
-  
-      // Set shopping item quantity to 0 (delete all shopping items)
-      cart.shopping_items = [];
-  
-      // Prepare the update parameters
-      const updateParams = {
-        user_id: Number(user_id),
-        id: cart.id,
-        body: { 
-          shopping_items: []
-        },
-      };
-  
-      // Call the update function
-      const updatedCart = await update(updateParams);
-  
-      return updatedCart;
-    } catch (error) {
-      if (error.name && error.message) {
-        throw error;
-      } else {
-        throw { name: "ErrorDelete", message: "Failed to Delete Shopping Items in Cart" };
-      }
-    }
-  };
-
 const getShippingCost = async (params) => {
     try {
         const { city_id, total_weight, courier_name, shipping_method, store_city_id } = params;
-        console.log(city_id, "<<<<<<< CITY ID di getShippingCost")
+
         const response = await axios.post(
             'https://api.rajaongkir.com/starter/cost',
             {
@@ -440,7 +372,7 @@ const getShippingCost = async (params) => {
             },
             {
                 headers: {
-                    key: process.env.RAJAONGKIR_API_KEY,
+                    key: process.env.RAJAONGKIR_SECRET_KEY,
                     'content-type': 'application/x-www-form-urlencoded'
                 }
             }
@@ -468,4 +400,4 @@ const getShippingCost = async (params) => {
     }
 };
 
-module.exports = { findOne, getShippingCost, update, destroy, destroyAll }
+module.exports = { findOne, getShippingCost, update, destroy }
