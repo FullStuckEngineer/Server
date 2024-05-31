@@ -67,6 +67,16 @@ const findAll = async (params) => {
     }
 };
 
+const findAllNoLimit = async (params) => {
+    try {
+        const { id } = params
+        const getAll = await prisma.address.findMany({ where: { user_id: id } })
+        return getAll
+    } catch (error) {
+        throw ({ name: "ErrorFetch", message: "Error Fetching Addresses" })
+    }
+}
+
 const findOne = async (params) => {
     const { user_id, id } = params;
     try {
@@ -203,4 +213,4 @@ const destroy = async (params) => {
     }
 };
 
-module.exports = { findAll, findOne, create, update, destroy };
+module.exports = { findAll, findAllNoLimit, findOne, create, update, destroy };

@@ -2,16 +2,7 @@ const addressService = require('../services/addressService')
 
 const findAll = async (req, res, next) => {
     try {
-        params = {
-            // page: req.query.page? parseInt(req.query.page) : 1,
-            // perPage: perPage,
-            // searchTerm: req.query.searchTerm,
-            userId: req.loggedUser.id,
-            // cityId: req.query.cityId,
-            // sortBy: req.query.sortBy
-        }
-
-        const address = await addressService.findAll(params)
+        const address = await addressService.findAllNoLimit(req.loggedUser)
         res.status(200).json(address)
     } catch (error) {
         next(error)

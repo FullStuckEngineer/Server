@@ -293,12 +293,16 @@ const update = async (params) => {
                 throw ({ name: "ErrorUpdate", message: "Failed to Update Cart" });
             }
 
-            return updateCart;
-        });
-    } catch (error) {
-        throw ({ name: "ErrorUpdate", message: "Failed to Update Cart" });
+                return updateCart;
+            });
+        } catch (error) {
+            if (error.name && error.message) {
+                throw error;
+            } else {
+                throw { name: "ErrorUpdate", message: "Failed to Update Cart" };
+            }
+        }
     }
-}
 
 const destroy = async (params) => {
     try {
@@ -323,6 +327,7 @@ const destroy = async (params) => {
         });
 
         // Check if idShoppingItem is in cart's shopping item
+        console.log('Cart Shopping Items:', cartShoppingItems);
         const shoppingItem = cartShoppingItems.find(item => item.id === Number(idShoppingItem));
         if (!shoppingItem) {
             throw ({ name: "ErrorNotFound", message: "Shopping Item Not Found" });
@@ -345,7 +350,11 @@ const destroy = async (params) => {
 
         return updatedCart;
     } catch (error) {
-        throw { name: "ErrorDelete", message: "Failed to Delete Shopping Item in Cart"};
+        if (error.name && error.message) {
+            throw error;
+        } else {
+            throw { name: "ErrorDelete", message: "Failed to Delete Shopping Item in Cart"};
+        }
     }
 };
 
@@ -383,8 +392,11 @@ const getShippingCost = async (params) => {
             return shipping_cost.cost[0].value;
         }
     } catch (error) {
-        console.error('Error fetching shipping cost:', error.message);
-        throw ({ name: "ErrorFetch", message: "Error Fetching Shipping Cost" });
+        if (error.name && error.message) {
+            throw error;
+        } else {
+            throw { name: "ErrorFetch", message: "Error Fetching Shipping Cost" };
+        }
     }
 };
 

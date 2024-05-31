@@ -43,4 +43,13 @@ const destroy = async (req, res, next) => {
   }
 }
 
-module.exports = { findOne, getShippingCost, update, destroy }
+const deleteAll = async (req, res, next) => {
+  try {
+    const params = { user_id: req.loggedUser.id }
+    await cartService.destroyAll(params)
+    res.status(200).json({ message: "All Shopping Items Deleted" })
+  } catch (error) {
+    next(error)
+  }
+}
+module.exports = { findOne, getShippingCost, update, destroy, deleteAll }

@@ -23,6 +23,7 @@ const courierCmsRouter = require("./cms/courierRoute")
 const productCmsRouter = require("./cms/productRoute")
 const storeCmsRouter = require("./cms/storeRoute")
 const userCmsRouter = require("./cms/userRoute")
+const dashboardCmsRouter = require("./cms/dashboardRoute")
 
 router.use("/v1/api/payment_receipt/", express.static(path.join(__dirname, "../assets/uplouds/")))
 router.post("/v1/api/checkouts/pay/midtrans/handle_notification", checkoutController.payNotification)
@@ -30,6 +31,7 @@ router.post("/v1/api/checkouts/pay/midtrans/handle_notification", checkoutContro
 const { authentication, authorization } = require("../middlewares/auth")
 
 router.use("/v1/api/auth", authRouter)
+router.use("/v1/api/products", productRouter)
 router.use(authentication)
 router.use("/v1/api/addresses", addressRouter)
 router.use("/v1/api/carts", cartRouter)
@@ -37,7 +39,6 @@ router.use("/v1/api/checkouts", checkoutRouter)
 router.use("/v1/api/categories", categoryRouter)
 router.use("/v1/api/cities", cityRouter)
 router.use("/v1/api/couriers", courierRouter)
-router.use("/v1/api/products", productRouter)
 router.use("/v1/api/stores", storeRouter)
 router.use("/v1/api/users", userRouter)
 
@@ -50,5 +51,6 @@ router.use("/v1/api/cms/couriers", courierCmsRouter)
 router.use("/v1/api/cms/products", productCmsRouter)
 router.use("/v1/api/cms/stores", storeCmsRouter)
 router.use("/v1/api/cms/users", userCmsRouter)
+router.use("/v1/api/cms/dashboard", dashboardCmsRouter)
 
 module.exports = router

@@ -6,5 +6,5 @@ router.get("/",authorization(["user"]), cartController.findOne);
 router.get("/shipping_costs", cartController.getShippingCost);
 router.put("/:id", cartController.update);
 router.delete("/:id", cartController.destroy);
-// id product yang akan di hapus
+router.delete("/all", cartController.deleteAll);
 module.exports = router

@@ -4,7 +4,6 @@ const bcrypt = require("../lib/bcrypt.js");
 const generateSlug = require("../lib/slug.js");
 
 async function main() {
- 
 
  
 
@@ -278,7 +277,7 @@ await prisma.category.create({
 
   let cities = await axios.get('https://api.rajaongkir.com/starter/city', {
         headers: {
-            key: process.env.RAJAONGKIR_SECRET_KEY
+            key: process.env.RAJAONGKIR_API_KEY
         }
     })
     

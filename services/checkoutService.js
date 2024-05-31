@@ -1,51 +1,85 @@
 const prisma = require("../lib/prisma")
 const axios = require("axios")
+const nodemailer = require('nodemailer');
 
 const findAll = async (params) => {
   try {
-    const { courier, order_id, user, role, loggedUser, currentPage = 1, perPage = 10 } = params
-    let where = {}
-    if (courier) {
-      where.courier = courier
+    const {
+      page = 1,
+      perPage = 10,
+      role = 'Admin',
+      searchTerms = '',
+      userId = '',
+      courierId = '',
+      paymentMethod = '',
+      status = '',
+      sortBy = '',
+      loggedUser = ''
+    } = params;
+
+    let where = {};
+
+    if (courierId) {
+      where.courier_id = parseInt(courierId);
     }
-    if (user) {
-      where.user = user
+    if (userId) {
+      where.user_id = parseInt(userId);
+    }
+    if (status) {
+      where.status = status;
+    }
+    if (paymentMethod) {
+      where.payment_method = paymentMethod;
     }
 
-    const offset = (currentPage - 1) * perPage
-    const limit = perPage
+    if (searchTerms) {
+      const searchConditions = [
+        { payment_method: { contains: searchTerms, mode: 'insensitive' } },
+        { bank: { contains: searchTerms, mode: 'insensitive' } },
+        { status: { contains: searchTerms, mode: 'insensitive' } },
+      ];
 
-    if (role === "admin") {
-      const checkout = await prisma.checkout.findMany({
-        where,
-        skip: offset,
-        take: limit,
-      })
-
-      if (!checkout) {
-        throw { name: "ErrorNotFound", message: "Checkout List Not Found" }
+      if (!isNaN(parseInt(searchTerms))) {
+        searchConditions.push({ net_price: { equals: parseInt(searchTerms) } });
       }
-      return checkout
-    } else if (role === "user") {
-      where.user_id = loggedUser
 
-      const checkout = await prisma.checkout.findMany({
-        where,
-        skip: offset,
-        take: limit,
-      })
-
-      if (!checkout) {
-        throw { name: "ErrorNotFound", message: "Checkout List Not Found" }
-      }
-      return checkout
-    } else {
-      throw { name: "ErrorNotFound", message: "Role Not Found" }
+      where.OR = searchConditions;
     }
+
+    if (role === "User") {
+      where.user_id = loggedUser;
+    }
+
+    const offset = (page - 1) * perPage;
+    const limit = parseInt(perPage);
+
+    const totalCount = await prisma.checkout.count({ where });
+
+    const orderBy = sortBy ? { [sortBy]: 'asc' } : undefined;
+
+    const checkouts = await prisma.checkout.findMany({
+      where,
+      skip: offset,
+      take: limit,
+      orderBy,
+    });
+
+    if (!checkouts || checkouts.length === 0) {
+      throw { name: "ErrorNotFound", message: "Checkout List Not Found" };
+    }
+
+    const totalPages = Math.ceil(totalCount / perPage);
+
+    return { checkouts, totalPages };
+
   } catch (error) {
-    throw { name: "ErrorNotFound", message: "Checkouts Not Found" }
+    if (error.name && error.message) {
+        throw error;
+    } else {
+        throw { name: "ErrorNotFound", message: "Checkouts Not Found" };
+    }
   }
-}
+};
 
 const findOne = async (params) => {
   try {
@@ -55,6 +89,13 @@ const findOne = async (params) => {
       const checkout = await prisma.checkout.findUnique({
         where: {
           id: parseInt(id),
+        },
+        include: {
+          checkout_products: {
+            include: {
+              product: true,
+            },
+          },
         },
       })
 
@@ -66,6 +107,13 @@ const findOne = async (params) => {
       const checkout = await prisma.checkout.findUnique({
         where: {
           id: parseInt(id),
+        },
+        include: {
+          checkout_products: {
+            include: {
+              product: true,
+            },
+          },
         },
       })
 
@@ -82,9 +130,14 @@ const findOne = async (params) => {
       throw { name: "Unauthorized", message: "Role Not Found" }
     }
   } catch (error) {
-    throw { name: "ErrorNotFound", message: "Checkout Not Found" }
+    if (error.name && error.message) {
+        throw error;
+    } else {
+        throw { name: "ErrorNotFound", message: "Checkout Not Found" }
+    }
   }
 }
+
 
 const create = async (params) => {
   try {
@@ -213,7 +266,11 @@ const create = async (params) => {
       return checkout
     })
   } catch (error) {
-    throw { name: "ErrorCreate", message: "Failed to Create Checkout" }
+    if (error.name && error.message) {
+        throw error;
+    } else {
+        throw { name: "ErrorCreate", message: "Failed to Create Checkout" }
+    }
   }
 }
 
@@ -439,16 +496,41 @@ const update = async (params) => {
       throw { name: "Unauthorized", message: "Role Not Found" }
     }
   } catch (error) {
-    throw { name: "ErrorUpdate", message: "Failed to Update Checkout" }
+    if (error.name && error.message) {
+        throw error;
+    } else {
+        throw { name: "ErrorUpdate", message: "Failed to Update Checkout" }
+    }
   }
 }
 
+const sendEmail = async ({ to, subject, html }) => {
+  const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+          user: process.env.SENDER_EMAIL,
+          pass: process.env.SENDER_PASSWORD
+      }
+  });
+
+  const mailOptions = {
+      from: process.env.SENDER_EMAIL,
+      to,
+      subject,
+      html
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+
 module.exports = {
-  findAll,
-  findOne,
-  create,
-  pay,
-  update,
-  payNotification,
-  payManual,
-}
+findAll,
+findOne,
+create,
+pay,
+update,
+payNotification,
+payManual,
+sendEmail
+};
