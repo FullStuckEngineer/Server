@@ -4,77 +4,20 @@ const bcrypt = require("../lib/bcrypt.js");
 const generateSlug = require("../lib/slug.js");
 
 async function main() {
-//   const users = await prisma.user.create({
-//     data: {
-//       email: "user@gmail.com",
-//       name: "Dono",
-//       role: "user",
-//       password: bcrypt.hashPassword("userpass1"),
-//       phone_number: "+6282194290000",
-//       addresses: {
-//         create: [
-//           {
-//             receiver_name: "Dono",
-//             receiver_phone: "+6282100001111",
-//             detail_address: "JL.Satwamarga no.33",
-//             city_id: 92,
-//             province: "Jawa Barat",
-//             postal_code: 89933
-//           },
-//         ],
-//       },
-//     },
-//   });
-
-
-//   await prisma.user.create({
-// data:{
-    
-//         email: "user2@gmail.com",
-//         name: "Usman",
-//         role: "user",
-//         password: bcrypt.hashPassword("userpass2"),
-//         phone_number: "+6282194233333",    
-//         addresses:{
-//             create:[
-//                 {
-//                     receiver_name: "Adnan",
-//                     receiver_phone: "+6282192221111",
-//                     detail_address: "JL.Gatotwaluyo no.82",
-//                     city_id: 182,
-//                     province:"Sulawesi Tenggara",
-//                     postal_code: 88002
-//                 }
-//             ]
-//         }
-// }
-//   })
-
-// const admin = await prisma.user.create({
-//     data: { 
-//         email: "admin@gmail.com",
-//         name: "Adnan",
-//         role: "admin",
-//         password: bcrypt.hashPassword("adminpass2"),
-//         phone_number:"+6282192221111",
-      
-
-//     }
-// })
 
  
 
-// const stores = await prisma.store.create({
-//     data: { 
-//         name: "BabyBoo",
-//         city_id: 153,
-//         province: "Jabodetabek",
-//         postal_code: "22991",
-//         bank_account_number:"224144566",
+const stores = await prisma.store.create({
+    data: { 
+        name: "BabyBoo",
+        city_id: 153,
+        province: "Jabodetabek",
+        postal_code: "22991",
+        bank_account_number:"224144566",
       
 
-//     }
-// })
+    }
+})
 
  await prisma.category.create({
     data: {
@@ -352,6 +295,66 @@ await prisma.category.create({
    
     console.log("City Seeding Success")
  
+
+
+    const users = await prisma.user.create({
+        data: {
+          email: "user@gmail.com",
+          name: "Dono",
+          role: "user",
+          password: bcrypt.hashPassword("userpass1"),
+          phone_number: "+6282194290000",
+          addresses: {
+            create: [
+              {
+                receiver_name: "Dono",
+                receiver_phone: "+6282100001111",
+                detail_address: "JL.Satwamarga no.33",
+                city_id: 92,
+                province: "Jawa Barat",
+                postal_code: 89933
+              },
+            ],
+          },
+        },
+      });
+    
+    
+      await prisma.user.create({
+    data:{
+        
+            email: "user2@gmail.com",
+            name: "Usman",
+            role: "user",
+            password: bcrypt.hashPassword("userpass2"),
+            phone_number: "+6282194233333",    
+            addresses:{
+                create:[
+                    {
+                        receiver_name: "Adnan",
+                        receiver_phone: "+6282192221111",
+                        detail_address: "JL.Gatotwaluyo no.82",
+                        city_id: 182,
+                        province:"Sulawesi Tenggara",
+                        postal_code: 88002
+                    }
+                ]
+            }
+    }
+      })
+    
+    const admin = await prisma.user.create({
+        data: { 
+            email: "admin@gmail.com",
+            name: "Adnan",
+            role: "admin",
+            password: bcrypt.hashPassword("adminpass2"),
+            phone_number:"+6282192221111",
+          
+    
+        }
+    })
+
 
 const couriers = await prisma.courier.createMany({
     data:[

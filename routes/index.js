@@ -1,6 +1,7 @@
 const router = require("express").Router()
 const path = require("path")
 const express = require("express")
+const checkoutController = require("../controllers/checkoutController")
 // web router
 const addressRouter = require("./addressRoute")
 const authRouter = require("./authRoute")
@@ -25,6 +26,7 @@ const userCmsRouter = require("./cms/userRoute")
 const dashboardCmsRouter = require("./cms/dashboardRoute")
 
 router.use("/v1/api/payment_receipt/", express.static(path.join(__dirname, "../assets/uplouds/")))
+router.post("/v1/api/checkouts/pay/midtrans/handle_notification", checkoutController.payNotification)
 
 const { authentication, authorization } = require("../middlewares/auth")
 
@@ -33,8 +35,8 @@ router.use("/v1/api/products", productRouter)
 router.use(authentication)
 router.use("/v1/api/addresses", addressRouter)
 router.use("/v1/api/carts", cartRouter)
-router.use("/v1/api/categories", categoryRouter)
 router.use("/v1/api/checkouts", checkoutRouter)
+router.use("/v1/api/categories", categoryRouter)
 router.use("/v1/api/cities", cityRouter)
 router.use("/v1/api/couriers", courierRouter)
 router.use("/v1/api/stores", storeRouter)
