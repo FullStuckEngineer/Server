@@ -1,28 +1,5 @@
 const prisma = require("../lib/prisma");
 
-//backup city service
-// const { search = '', limit } = params;
-//     try {
-//         const queryOptions = {
-//             where: {
-//                 name: {
-//                     contains: search,
-//                     mode: 'insensitive'
-//                 }
-//             },
-//         };
-
-//         // Jika limit disertakan dan valid, tambahkan opsi limit ke query
-//         if (limit && !isNaN(limit)) {
-//             queryOptions.take = Number(limit);
-//         }
-
-//         const cities = await prisma.city.findMany(queryOptions);
-//         return cities;
-//     } catch (error) {
-//         throw ({ name: "ErrorNotFound", message: "Cities Not Found" });
-//     }
-
 const findAll = async (params) => {
     try {
         const { page = 1, perPage = 10, searchTerm = ''} = params;
