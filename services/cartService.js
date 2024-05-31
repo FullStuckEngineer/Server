@@ -4,7 +4,8 @@ require("dotenv").config();
 
 const findOne = async (params) => {
     try {
-        // const id = Number(params.id);
+        console.log("PARAMS", params);
+        const id = Number(params.id);
         const logged_user_id = params.logged_user_id;
 
         // Check if user_id in cart_id and logged_user_id are the same
@@ -21,11 +22,7 @@ const findOne = async (params) => {
 
         return cart
     } catch (error) {
-        if (error.name && error.message) {
-            throw error;
-        } else {
-            throw { name: "ErrorFetch", message: "Error Fetching Carts" }
-        }
+        throw ({ name: "ErrorFetch", message: "Error Fetching Carts" })
     }
 }
 
@@ -34,11 +31,22 @@ const update = async (params) => {
     try {
         await prisma.$transaction(async (prisma) => {
             const { user_id, id, body } = params
+const update = async (params) => {
+    try {
+        await prisma.$transaction(async (prisma) => {
+            const { user_id, id, body } = params
 
+            const { address_id: paramAddressId, courier_id: paramCourierId, shipping_method: paramShippingMethod, shopping_items: paramShoppingItem } = body;
             const { address_id: paramAddressId, courier_id: paramCourierId, shipping_method: paramShippingMethod, shopping_items: paramShoppingItem } = body;
 
             if (!id) throw ({ name: "ErrorRequired", message: "Cart ID is required" });
+            if (!id) throw ({ name: "ErrorRequired", message: "Cart ID is required" });
 
+            // Get current cart data
+            let currentCart = await prisma.cart.findUnique({
+                where: { user_id: Number(user_id) },
+                select: { id: true, user_id: true, address_id: true, courier_id: true, shipping_method: true, shopping_items: true }
+            });
             // Get current cart data
             let currentCart = await prisma.cart.findUnique({
                 where: { user_id: Number(user_id) },
@@ -53,7 +61,7 @@ const update = async (params) => {
             let courier_id = currentCart.courier_id ? currentCart.courier_id : null;
             let shipping_method = currentCart.shipping_method ? currentCart.shipping_method : null;
             let shopping_items = [];
-
+            
             if (paramAddressId !== undefined) {
                 address_id = paramAddressId;
             }
@@ -71,7 +79,17 @@ const update = async (params) => {
                 // Check if user_id and logged_user_id are the same
                 let user_id_cart = await prisma.cart.findUnique({
                     where: { user_id: Number(user_id) },
+            if (user_id !== undefined) {
+                // Check if user_id and logged_user_id are the same
+                let user_id_cart = await prisma.cart.findUnique({
+                    where: { user_id: Number(user_id) },
 
+                });
+                user_id_cart = user_id_cart.user_id;
+                if (user_id !== user_id_cart) {
+                    throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
+                }
+            }
                 });
                 user_id_cart = user_id_cart.user_id;
                 if (user_id !== user_id_cart) {
@@ -85,7 +103,7 @@ const update = async (params) => {
                     where: { id: Number(address_id) },
                     select: { user_id: true }
                 });
-                console.log(address_id_cart, '<<<<<<<<<<<<<<<HERE>>>>>>>>>>>>>>>')
+
                 address_id_cart = address_id_cart.user_id;
                 if (user_id !== address_id_cart) {
                     throw ({ name: "ErrorUnauthorized", message: "Unauthorized" })
@@ -330,6 +348,7 @@ const destroy = async (params) => {
         });
 
         // Check if idShoppingItem is in cart's shopping item
+        console.log('Cart Shopping Items:', cartShoppingItems);
         const shoppingItem = cartShoppingItems.find(item => item.id === Number(idShoppingItem));
         if (!shoppingItem) {
             throw ({ name: "ErrorNotFound", message: "Shopping Item Not Found" });

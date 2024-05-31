@@ -12,6 +12,16 @@ const findAll = async (req, res, next) => {
     }
 };
 
+const findAllWithLimit = async (req, res, next) => {
+  try {
+    const params = req.query;
+    const cities = await cityService.findAllWithLimit(params);
+    res.status(200).json(cities);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const findAllWithNoLimit = async (req, res, next) => {
     try {
         const params = req.query;
@@ -35,4 +45,4 @@ const findOne = async (req, res, next) => {
 
 
 
-module.exports = { findAll, findOne, findAllWithNoLimit };
+module.exports = { findAll, findOne, findAllWithNoLimit, findAllWithLimit };
