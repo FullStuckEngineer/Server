@@ -37,7 +37,7 @@ const findOne = async (req, res, next) => {
 
 const create = async (req, res, next) => {
     try {
-        const obj = { user_id: req.loggedUser.id, body: req.body }
+        const obj = { user_id: req.body.user_id, body: req.body }
         const createCheckout = await checkoutService.create(obj)
         res.status(200).json({message: "Success Create Checkout", data: createCheckout})
     } catch (error) {
