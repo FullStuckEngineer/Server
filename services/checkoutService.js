@@ -35,13 +35,8 @@ const findAll = async (params) => {
     if (searchTerms) {
       const searchConditions = [
         { payment_method: { contains: searchTerms, mode: 'insensitive' } },
-        { bank: { contains: searchTerms, mode: 'insensitive' } },
-        { status: { contains: searchTerms, mode: 'insensitive' } },
+        { bank: { contains: searchTerms, mode: 'insensitive' } }
       ];
-
-      if (!isNaN(parseInt(searchTerms))) {
-        searchConditions.push({ net_price: { equals: parseInt(searchTerms) } });
-      }
 
       where.OR = searchConditions;
     }
@@ -74,9 +69,9 @@ const findAll = async (params) => {
 
   } catch (error) {
     if (error.name && error.message) {
-        throw error;
+      throw error;
     } else {
-        throw { name: "ErrorNotFound", message: "Checkouts Not Found" };
+      throw { name: "ErrorNotFound", message: "Checkouts Not Found" };
     }
   }
 };
